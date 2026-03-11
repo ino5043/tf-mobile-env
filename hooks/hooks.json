@@ -1,0 +1,78 @@
+{
+  "hooks": [
+    {
+      "type": "PostToolUse",
+      "matcher": {
+        "tool": "Edit",
+        "filePattern": "*.dart"
+      },
+      "hooks": [
+        {
+          "command": "command -v dart >/dev/null 2>&1 && dart format \"$FILE\" || true",
+          "description": "Dart auto-format (on .dart edit)"
+        }
+      ]
+    },
+    {
+      "type": "PostToolUse",
+      "matcher": {
+        "tool": "Edit",
+        "filePattern": "*.dart"
+      },
+      "hooks": [
+        {
+          "command": "command -v dart >/dev/null 2>&1 && dart analyze \"$FILE\" 2>/dev/null | head -20 || true",
+          "description": "Dart analyze (on .dart edit)"
+        }
+      ]
+    },
+    {
+      "type": "PostToolUse",
+      "matcher": {
+        "tool": "Edit",
+        "filePattern": "*.swift"
+      },
+      "hooks": [
+        {
+          "command": "command -v swiftformat >/dev/null 2>&1 && swiftformat \"$FILE\" || true",
+          "description": "Swift auto-format (on .swift edit)"
+        }
+      ]
+    },
+    {
+      "type": "PostToolUse",
+      "matcher": {
+        "tool": "Edit",
+        "filePattern": "*.kt"
+      },
+      "hooks": [
+        {
+          "command": "command -v ktlint >/dev/null 2>&1 && ktlint -F \"$FILE\" 2>/dev/null || true",
+          "description": "Kotlin lint + format (on .kt edit)"
+        }
+      ]
+    },
+    {
+      "type": "PostToolUse",
+      "matcher": {
+        "tool": "Edit",
+        "filePattern": "*.dart"
+      },
+      "hooks": [
+        {
+          "command": "grep -n 'print(' \"$FILE\" && echo '⚠ print() found. Use logger or debugPrint() instead.' || true",
+          "description": "Detect print() in Dart files (use logger instead)"
+        }
+      ]
+    },
+    {
+      "type": "Stop",
+      "hooks": [
+        {
+          "command": "git diff --name-only --diff-filter=AM 2>/dev/null | grep -E '\\.(dart|swift|kt)$' | xargs grep -l 'TODO\\|FIXME\\|HACK' 2>/dev/null | head -5 && echo '⚠ TODO/FIXME/HACK comments found in modified files.' || true",
+          "description": "Check for TODO/FIXME in modified mobile source files"
+        }
+      ]
+    }
+  ]
+}

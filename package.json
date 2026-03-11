@@ -1,0 +1,29 @@
+{
+  "name": "tf-mobile-env",
+  "version": "1.0.0",
+  "description": "TechFusion モバイルアプリ開発標準環境 - Claude Code 開発標準",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "install:env": "node scripts/install.js",
+    "install:env:dry": "node scripts/install.js --dry-run"
+  },
+  "keywords": [
+    "claude-code",
+    "mobile",
+    "flutter",
+    "swift",
+    "kotlin",
+    "ios",
+    "android",
+    "clean-architecture"
+  ],
+  "author": "Tech Fusion",
+  "license": "MIT",
+  "type": "commonjs",
+  "peerDependencies": {
+    "tf-standard-env": ">=2.0.0"
+  }
+}
