@@ -1,0 +1,149 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:educards/core/widgets/loading_indicator.dart';
+import '../bloc/settings_bloc.dart';
+import '../bloc/settings_event.dart';
+import '../bloc/settings_state.dart';
+
+class SettingsPage extends StatelessWidget {
+  const SettingsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Settings')),
+      body: BlocBuilder<SettingsBloc, SettingsState>(
+        builder: (context, state) => switch (state) {
+          SettingsInitial() || SettingsLoading() => const LoadingIndicator(),
+          SettingsError(:final message) => Center(child: Text(message)),
+          SettingsLoaded(:final settings) => ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Text(
+                  'Study Plan',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                _buildSliderTile(
+                  context: context,
+                  title: 'Daily New Cards',
+                  subtitle: '${settings.dailyNewCardLimit} cards/day',
+                  value: settings.dailyNewCardLimit.toDouble(),
+                  min: 1,
+                  max: 50,
+                  onChanged: (value) => context
+                      .read<SettingsBloc>()
+                      .add(UpdateDailyNewCardLimit(value.round())),
+                ),
+                _buildSliderTile(
+                  context: context,
+                  title: 'Daily Review Cards',
+                  subtitle: '${settings.dailyReviewCardLimit} cards/day',
+                  value: settings.dailyReviewCardLimit.toDouble(),
+                  min: 5,
+                  max: 100,
+                  onChanged: (value) => context
+                      .read<SettingsBloc>()
+                      .add(UpdateDailyReviewCardLimit(value.round())),
+                ),
+                const Divider(height: 32),
+                Text(
+                  'AI Generation',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                _ApiKeyField(
+                  initialValue: settings.claudeApiKey ?? '',
+                  onSaved: (key) => context
+                      .read<SettingsBloc>()
+                      .add(UpdateClaudeApiKey(key)),
+                ),
+              ],
+            ),
+        },
+      ),
+    );
+  }
+
+  Widget _buildSliderTile({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required double value,
+    required double min,
+    required double max,
+    required ValueChanged<double> onChanged,
+  }) {
+    return ListTile(
+      title: Text(title),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(subtitle),
+          Slider(
+            value: value,
+            min: min,
+            max: max,
+            divisions: (max - min).round(),
+            label: value.round().toString(),
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ApiKeyField extends StatefulWidget {
+  final String initialValue;
+  final ValueChanged<String> onSaved;
+
+  const _ApiKeyField({required this.initialValue, required this.onSaved});
+
+  @override
+  State<_ApiKeyField> createState() => _ApiKeyFieldState();
+}
+
+class _ApiKeyFieldState extends State<_ApiKeyField> {
+  late final TextEditingController _controller;
+  bool _obscured = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: _controller,
+      obscureText: _obscured,
+      decoration: InputDecoration(
+        labelText: 'Claude API Key',
+        hintText: 'sk-ant-...',
+        border: const OutlineInputBorder(),
+        suffixIcon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(_obscured ? Icons.visibility : Icons.visibility_off),
+              onPressed: () => setState(() => _obscured = !_obscured),
+            ),
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: () => widget.onSaved(_controller.text.trim()),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
