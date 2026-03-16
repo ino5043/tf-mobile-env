@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../domain/entities/card_type.dart';
+
 sealed class DeckCreateEvent extends Equatable {
   const DeckCreateEvent();
 
@@ -28,11 +30,18 @@ class UpdateDescription extends DeckCreateEvent {
 class AddCard extends DeckCreateEvent {
   final String front;
   final String back;
+  final CardType cardType;
+  final String metadata;
 
-  const AddCard({required this.front, required this.back});
+  const AddCard({
+    required this.front,
+    required this.back,
+    this.cardType = CardType.basic,
+    this.metadata = '',
+  });
 
   @override
-  List<Object?> get props => [front, back];
+  List<Object?> get props => [front, back, cardType, metadata];
 }
 
 class RemoveCard extends DeckCreateEvent {
@@ -57,15 +66,17 @@ class GenerateWithAI extends DeckCreateEvent {
   final String topic;
   final int cardCount;
   final String difficulty;
+  final CardType cardType;
 
   const GenerateWithAI({
     required this.topic,
     required this.cardCount,
     required this.difficulty,
+    this.cardType = CardType.basic,
   });
 
   @override
-  List<Object?> get props => [topic, cardCount, difficulty];
+  List<Object?> get props => [topic, cardCount, difficulty, cardType];
 }
 
 class ImportFile extends DeckCreateEvent {

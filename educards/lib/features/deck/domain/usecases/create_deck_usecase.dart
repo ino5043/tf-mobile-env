@@ -7,7 +7,7 @@ import '../repositories/deck_repository.dart';
 class CreateDeckParams extends Equatable {
   final String title;
   final String description;
-  final List<Map<String, String>> cards;
+  final List<Map<String, dynamic>> cards;
 
   const CreateDeckParams({
     required this.title,

@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../settings/domain/repositories/settings_repository.dart';
+import '../../domain/entities/card_type.dart';
 import '../../domain/usecases/create_deck_usecase.dart';
 import '../../domain/usecases/generate_deck_usecase.dart';
 import '../../domain/usecases/import_deck_usecase.dart';
@@ -49,7 +50,12 @@ class DeckCreateBloc extends Bloc<DeckCreateEvent, DeckCreateState> {
     if (current is DeckCreateEditing) {
       final newCards = [
         ...current.cards,
-        CardEntry(front: event.front, back: event.back),
+        CardEntry(
+          front: event.front,
+          back: event.back,
+          cardType: event.cardType,
+          metadata: event.metadata,
+        ),
       ];
       emit(current.copyWith(cards: newCards));
     }
@@ -128,6 +134,7 @@ class DeckCreateBloc extends Bloc<DeckCreateEvent, DeckCreateState> {
         topic: event.topic,
         cardCount: event.cardCount,
         difficulty: event.difficulty,
+        cardType: event.cardType,
       ));
 
       if (cards.isEmpty) {
@@ -139,10 +146,20 @@ class DeckCreateBloc extends Bloc<DeckCreateEvent, DeckCreateState> {
       }
 
       final generated = cards
-          .map((c) => CardEntry(
-                front: c['front'] ?? '',
-                back: c['back'] ?? '',
-              ))
+          .map((c) {
+            final cardTypeName =
+                (c['cardType'] as String?) ?? event.cardType.name;
+            final cardType = CardType.values.firstWhere(
+              (t) => t.name == cardTypeName,
+              orElse: () => CardType.basic,
+            );
+            return CardEntry(
+              front: (c['front'] ?? '').toString(),
+              back: (c['back'] ?? '').toString(),
+              cardType: cardType,
+              metadata: (c['metadata'] ?? '').toString(),
+            );
+          })
           .where((c) => c.front.isNotEmpty && c.back.isNotEmpty)
           .toList();
       final newCards = [...current.cards, ...generated];
@@ -169,7 +186,12 @@ class DeckCreateBloc extends Bloc<DeckCreateEvent, DeckCreateState> {
 
     try {
       final cardMaps = current.cards
-          .map((c) => {'front': c.front, 'back': c.back})
+          .map((c) => {
+                'front': c.front,
+                'back': c.back,
+                'cardType': c.cardType.name,
+                'metadata': c.metadata,
+              })
           .toList();
 
       await createDeck(CreateDeckParams(

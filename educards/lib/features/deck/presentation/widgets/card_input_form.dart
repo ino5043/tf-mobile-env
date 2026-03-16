@@ -1,7 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
+import '../../domain/entities/card_type.dart';
+
 class CardInputForm extends StatefulWidget {
-  final void Function(String front, String back) onAdd;
+  final void Function(
+    String front,
+    String back, {
+    CardType cardType,
+    String metadata,
+  }) onAdd;
 
   const CardInputForm({super.key, required this.onAdd});
 
@@ -10,26 +19,111 @@ class CardInputForm extends StatefulWidget {
 }
 
 class _CardInputFormState extends State<CardInputForm> {
+  final _formKey = GlobalKey<FormState>();
   final _frontController = TextEditingController();
   final _backController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+
+  // Multi-choice fields
+  final _optionControllers = List.generate(4, (_) => TextEditingController());
+  int _correctIndex = 0;
+
+  // Step-by-step fields
+  final _hintController = TextEditingController();
+  final _stepsControllers = [TextEditingController()];
+
+  CardType _selectedType = CardType.basic;
 
   @override
   void dispose() {
     _frontController.dispose();
     _backController.dispose();
+    for (final c in _optionControllers) {
+      c.dispose();
+    }
+    _hintController.dispose();
+    for (final c in _stepsControllers) {
+      c.dispose();
+    }
     super.dispose();
   }
 
   void _submit() {
-    if (_formKey.currentState?.validate() ?? false) {
-      widget.onAdd(
-        _frontController.text.trim(),
-        _backController.text.trim(),
-      );
-      _frontController.clear();
-      _backController.clear();
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    final front = _frontController.text.trim();
+    final back = _backController.text.trim();
+    String metadata = '';
+
+    switch (_selectedType) {
+      case CardType.basic:
+        break;
+      case CardType.cloze:
+        final blanks = RegExp(r'\{\{(.+?)\}\}')
+            .allMatches(front)
+            .map((m) => m.group(1)!)
+            .toList();
+        if (blanks.isNotEmpty) {
+          metadata = jsonEncode({'blanks': blanks});
+        }
+      case CardType.multiChoice:
+        final options = _optionControllers
+            .map((c) => c.text.trim())
+            .where((t) => t.isNotEmpty)
+            .toList();
+        metadata = jsonEncode({
+          'options': options,
+          'correctIndex': _correctIndex,
+        });
+      case CardType.stepByStep:
+        final hint = _hintController.text.trim();
+        final steps = _stepsControllers
+            .map((c) => c.text.trim())
+            .where((t) => t.isNotEmpty)
+            .toList();
+        metadata = jsonEncode({
+          'hints': hint.isNotEmpty ? [hint] : <String>[],
+          'steps': steps,
+        });
     }
+
+    widget.onAdd(front, back, cardType: _selectedType, metadata: metadata);
+    _clearForm();
+  }
+
+  void _clearForm() {
+    _frontController.clear();
+    _backController.clear();
+    for (final c in _optionControllers) {
+      c.clear();
+    }
+    _correctIndex = 0;
+    _hintController.clear();
+    for (final c in _stepsControllers) {
+      c.clear();
+    }
+    setState(() {
+      _stepsControllers
+        ..clear()
+        ..add(TextEditingController());
+    });
+  }
+
+  String _cardTypeLabel(CardType type) {
+    return switch (type) {
+      CardType.basic => 'Q&A',
+      CardType.cloze => 'Blank',
+      CardType.multiChoice => 'Choice',
+      CardType.stepByStep => 'Steps',
+    };
+  }
+
+  IconData _cardTypeIcon(CardType type) {
+    return switch (type) {
+      CardType.basic => Icons.quiz_outlined,
+      CardType.cloze => Icons.text_fields,
+      CardType.multiChoice => Icons.checklist,
+      CardType.stepByStep => Icons.format_list_numbered,
+    };
   }
 
   @override
@@ -47,22 +141,41 @@ class _CardInputFormState extends State<CardInputForm> {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 12),
+              SegmentedButton<CardType>(
+                segments: CardType.values
+                    .map((t) => ButtonSegment(
+                          value: t,
+                          label: Text(
+                            _cardTypeLabel(t),
+                            style: const TextStyle(fontSize: 11),
+                          ),
+                          icon: Icon(_cardTypeIcon(t), size: 16),
+                        ))
+                    .toList(),
+                selected: {_selectedType},
+                onSelectionChanged: (v) =>
+                    setState(() => _selectedType = v.first),
+                showSelectedIcon: false,
+              ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _frontController,
-                decoration: const InputDecoration(
-                  labelText: 'Front (Question)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: _frontLabel,
+                  helperText: _frontHelper,
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 2,
                 validator: (v) =>
                     (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
               const SizedBox(height: 12),
+              ..._buildTypeSpecificFields(context),
               TextFormField(
                 controller: _backController,
-                decoration: const InputDecoration(
-                  labelText: 'Back (Answer)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: _backLabel,
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 2,
                 validator: (v) =>
@@ -79,5 +192,132 @@ class _CardInputFormState extends State<CardInputForm> {
         ),
       ),
     );
+  }
+
+  String get _frontLabel => switch (_selectedType) {
+        CardType.basic => 'Front (Question)',
+        CardType.cloze => 'Text with {{blanks}}',
+        CardType.multiChoice => 'Question',
+        CardType.stepByStep => 'Problem',
+      };
+
+  String? get _frontHelper => switch (_selectedType) {
+        CardType.cloze => 'Use {{word}} to mark blanks',
+        _ => null,
+      };
+
+  String get _backLabel => switch (_selectedType) {
+        CardType.basic => 'Back (Answer)',
+        CardType.cloze => 'Full answer',
+        CardType.multiChoice => 'Explanation',
+        CardType.stepByStep => 'Final answer',
+      };
+
+  List<Widget> _buildTypeSpecificFields(BuildContext context) {
+    return switch (_selectedType) {
+      CardType.basic => [],
+      CardType.cloze => [],
+      CardType.multiChoice => _buildMultiChoiceFields(context),
+      CardType.stepByStep => _buildStepByStepFields(context),
+    };
+  }
+
+  List<Widget> _buildMultiChoiceFields(BuildContext context) {
+    return [
+      Text('Options', style: Theme.of(context).textTheme.labelLarge),
+      const SizedBox(height: 8),
+      ...List.generate(4, (i) {
+        final label = String.fromCharCode(65 + i);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: () => setState(() => _correctIndex = i),
+                child: Icon(
+                  i == _correctIndex
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  color: i == _correctIndex
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextFormField(
+                  controller: _optionControllers[i],
+                  decoration: InputDecoration(
+                    labelText: 'Option $label',
+                    isDense: true,
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (v) => i < 2 && (v == null || v.trim().isEmpty)
+                      ? 'At least 2 options'
+                      : null,
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
+      const SizedBox(height: 4),
+    ];
+  }
+
+  List<Widget> _buildStepByStepFields(BuildContext context) {
+    return [
+      TextFormField(
+        controller: _hintController,
+        decoration: const InputDecoration(
+          labelText: 'Hint (optional)',
+          prefixIcon: Icon(Icons.lightbulb_outline),
+          border: OutlineInputBorder(),
+        ),
+      ),
+      const SizedBox(height: 12),
+      Text('Solution Steps', style: Theme.of(context).textTheme.labelLarge),
+      const SizedBox(height: 8),
+      ...List.generate(_stepsControllers.length, (i) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 12,
+                  child: Text('${i + 1}', style: const TextStyle(fontSize: 12)),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextFormField(
+                    controller: _stepsControllers[i],
+                    decoration: InputDecoration(
+                      labelText: 'Step ${i + 1}',
+                      isDense: true,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                if (i > 0)
+                  IconButton(
+                    icon: const Icon(Icons.remove_circle_outline, size: 20),
+                    onPressed: () {
+                      setState(() {
+                        _stepsControllers[i].dispose();
+                        _stepsControllers.removeAt(i);
+                      });
+                    },
+                  ),
+              ],
+            ),
+          )),
+      TextButton.icon(
+        onPressed: () {
+          setState(() => _stepsControllers.add(TextEditingController()));
+        },
+        icon: const Icon(Icons.add, size: 16),
+        label: const Text('Add Step'),
+      ),
+      const SizedBox(height: 4),
+    ];
   }
 }

@@ -83,6 +83,8 @@ class DeckEditBloc extends Bloc<DeckEditEvent, DeckEditState> {
           front: event.front,
           back: event.back,
           originalFront: event.front,
+          cardType: event.cardType,
+          metadata: event.metadata,
         ),
       ];
       emit(current.copyWith(cards: newCards));

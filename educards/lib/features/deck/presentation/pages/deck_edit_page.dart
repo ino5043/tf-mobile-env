@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../domain/entities/card_type.dart';
 import '../bloc/deck_edit_bloc.dart';
 import '../bloc/deck_edit_event.dart';
 import '../bloc/deck_edit_state.dart';
@@ -192,10 +193,14 @@ class _DeckEditFormState extends State<_DeckEditForm> {
             const SizedBox(height: 16),
             // Add new card
             CardInputForm(
-              onAdd: (front, back) {
-                context
-                    .read<DeckEditBloc>()
-                    .add(AddEditCard(front: front, back: back));
+              onAdd: (front, back,
+                      {cardType = CardType.basic, metadata = ''}) {
+                context.read<DeckEditBloc>().add(AddEditCard(
+                      front: front,
+                      back: back,
+                      cardType: cardType,
+                      metadata: metadata,
+                    ));
               },
             ),
           ],

@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:educards/features/deck/domain/entities/card_type.dart';
 import 'package:educards/features/deck/domain/entities/flashcard.dart';
 import 'basic_card_renderer.dart';
+import 'cloze_card_renderer.dart';
+import 'multi_choice_card_renderer.dart';
+import 'step_by_step_card_renderer.dart';
 
 /// Strategy interface for rendering card content by type.
 ///
@@ -23,10 +26,8 @@ abstract class CardContentRenderer {
 CardContentRenderer getRenderer(CardType type) {
   return switch (type) {
     CardType.basic => const BasicCardRenderer(),
-    // Phase 2 will add:
-    // CardType.cloze => const ClozeCardRenderer(),
-    // CardType.multiChoice => const MultiChoiceCardRenderer(),
-    // CardType.stepByStep => const StepByStepCardRenderer(),
-    _ => const BasicCardRenderer(),
+    CardType.cloze => const ClozeCardRenderer(),
+    CardType.multiChoice => const MultiChoiceCardRenderer(),
+    CardType.stepByStep => const StepByStepCardRenderer(),
   };
 }

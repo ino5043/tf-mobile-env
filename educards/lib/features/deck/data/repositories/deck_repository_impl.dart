@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:educards/features/deck/domain/entities/card_type.dart';
 import 'package:educards/features/deck/domain/entities/deck.dart';
 import 'package:educards/features/deck/domain/entities/flashcard.dart';
 import 'package:educards/features/deck/domain/repositories/deck_repository.dart';
@@ -30,19 +31,28 @@ class DeckRepositoryImpl implements DeckRepository {
   Future<Deck> createDeck({
     required String title,
     required String description,
-    required List<Map<String, String>> cards,
+    required List<Map<String, dynamic>> cards,
   }) async {
     final now = DateTime.now();
     final deckId = _uuid.v4();
 
-    final flashcards = cards.map((c) => Flashcard(
-      id: _uuid.v4(),
-      deckId: deckId,
-      front: c['front'] ?? '',
-      back: c['back'] ?? '',
-      srData: SpacedRepetitionData.initial(),
-      createdAt: now,
-    )).toList();
+    final flashcards = cards.map((c) {
+      final cardTypeName = (c['cardType'] as String?) ?? 'basic';
+      final cardType = CardType.values.firstWhere(
+        (t) => t.name == cardTypeName,
+        orElse: () => CardType.basic,
+      );
+      return Flashcard(
+        id: _uuid.v4(),
+        deckId: deckId,
+        front: (c['front'] ?? '').toString(),
+        back: (c['back'] ?? '').toString(),
+        cardType: cardType,
+        metadata: (c['metadata'] ?? '').toString(),
+        srData: SpacedRepetitionData.initial(),
+        createdAt: now,
+      );
+    }).toList();
 
     final deck = Deck(
       id: deckId,

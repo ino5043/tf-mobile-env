@@ -8,7 +8,7 @@ abstract class DeckRepository {
   Future<Deck> createDeck({
     required String title,
     required String description,
-    required List<Map<String, String>> cards,
+    required List<Map<String, dynamic>> cards,
   });
   Future<Deck> updateDeck(Deck deck);
   Future<void> deleteDeck(String id);

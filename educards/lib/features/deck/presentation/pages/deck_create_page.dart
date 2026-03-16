@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../domain/entities/card_type.dart';
 import '../bloc/deck_create_bloc.dart';
 import '../bloc/deck_create_event.dart';
 import '../bloc/deck_create_state.dart';
@@ -152,9 +153,14 @@ class _ManualTab extends StatelessWidget {
       child: Column(
         children: [
           CardInputForm(
-            onAdd: (front, back) => context
-                .read<DeckCreateBloc>()
-                .add(AddCard(front: front, back: back)),
+            onAdd: (front, back,
+                    {cardType = CardType.basic, metadata = ''}) =>
+                context.read<DeckCreateBloc>().add(AddCard(
+                      front: front,
+                      back: back,
+                      cardType: cardType,
+                      metadata: metadata,
+                    )),
           ),
           const SizedBox(height: 16),
           if (cards.isNotEmpty) ...[
@@ -166,10 +172,36 @@ class _ManualTab extends StatelessWidget {
             ...cards.asMap().entries.map((entry) {
               final index = entry.key;
               final card = entry.value;
+              final typeLabel = switch (card.cardType) {
+                CardType.basic => '',
+                CardType.cloze => 'Blank',
+                CardType.multiChoice => 'Choice',
+                CardType.stepByStep => 'Steps',
+              };
               return Card(
                 child: ListTile(
                   leading: CircleAvatar(child: Text('${index + 1}')),
-                  title: Text(card.front, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  title: Row(
+                    children: [
+                      Expanded(
+                        child: Text(card.front,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
+                      ),
+                      if (typeLabel.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4),
+                          child: Chip(
+                            label: Text(typeLabel,
+                                style: const TextStyle(fontSize: 10)),
+                            padding: EdgeInsets.zero,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ),
+                    ],
+                  ),
                   subtitle: Text(card.back, maxLines: 1, overflow: TextOverflow.ellipsis),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline),
@@ -252,6 +284,7 @@ class _AIGenerateTabState extends State<_AIGenerateTab> {
   final _topicController = TextEditingController();
   int _cardCount = 10;
   String _difficulty = 'medium';
+  CardType _cardType = CardType.basic;
 
   @override
   void dispose() {
@@ -319,6 +352,27 @@ class _AIGenerateTabState extends State<_AIGenerateTab> {
                 ? null
                 : (v) => setState(() => _difficulty = v.first),
           ),
+          const SizedBox(height: 16),
+          Text('Card Type',
+              style: Theme.of(context).textTheme.bodyMedium),
+          const SizedBox(height: 8),
+          SegmentedButton<CardType>(
+            segments: const [
+              ButtonSegment(
+                  value: CardType.basic, label: Text('Q&A')),
+              ButtonSegment(
+                  value: CardType.cloze, label: Text('Blank')),
+              ButtonSegment(
+                  value: CardType.multiChoice, label: Text('Choice')),
+              ButtonSegment(
+                  value: CardType.stepByStep, label: Text('Steps')),
+            ],
+            selected: {_cardType},
+            onSelectionChanged: widget.isGenerating
+                ? null
+                : (v) => setState(() => _cardType = v.first),
+            showSelectedIcon: false,
+          ),
           const SizedBox(height: 24),
           FilledButton.icon(
             onPressed: widget.isGenerating ||
@@ -328,6 +382,7 @@ class _AIGenerateTabState extends State<_AIGenerateTab> {
                       topic: _topicController.text.trim(),
                       cardCount: _cardCount,
                       difficulty: _difficulty,
+                      cardType: _cardType,
                     )),
             icon: widget.isGenerating
                 ? const SizedBox(

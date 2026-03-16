@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../domain/entities/card_type.dart';
+
 sealed class DeckEditEvent extends Equatable {
   const DeckEditEvent();
 
@@ -37,11 +39,18 @@ class UpdateEditDescription extends DeckEditEvent {
 class AddEditCard extends DeckEditEvent {
   final String front;
   final String back;
+  final CardType cardType;
+  final String metadata;
 
-  const AddEditCard({required this.front, required this.back});
+  const AddEditCard({
+    required this.front,
+    required this.back,
+    this.cardType = CardType.basic,
+    this.metadata = '',
+  });
 
   @override
-  List<Object> get props => [front, back];
+  List<Object> get props => [front, back, cardType, metadata];
 }
 
 class UpdateEditCard extends DeckEditEvent {

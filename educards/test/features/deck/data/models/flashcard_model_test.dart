@@ -8,7 +8,7 @@ import 'package:educards/features/study/domain/entities/spaced_repetition_data.d
 void main() {
   final now = DateTime(2026, 3, 15, 10, 0, 0);
 
-  Flashcard _makeFlashcard({
+  Flashcard makeFlashcard({
     CardType cardType = CardType.basic,
     String metadata = '',
   }) {
@@ -32,7 +32,7 @@ void main() {
 
   group('FlashcardModel', () {
     test('fromEntity preserves cardType and metadata for basic card', () {
-      final entity = _makeFlashcard();
+      final entity = makeFlashcard();
       final model = FlashcardModel.fromEntity(entity);
 
       expect(model.cardTypeIndex, 0);
@@ -40,7 +40,7 @@ void main() {
     });
 
     test('fromEntity preserves cardType and metadata for cloze card', () {
-      final entity = _makeFlashcard(
+      final entity = makeFlashcard(
         cardType: CardType.cloze,
         metadata: '{"blanks":["capital"]}',
       );
@@ -114,7 +114,7 @@ void main() {
     });
 
     test('roundtrip preserves all fields', () {
-      final original = _makeFlashcard(
+      final original = makeFlashcard(
         cardType: CardType.stepByStep,
         metadata: '{"hints":["hint1"],"steps":["step1"]}',
       );
