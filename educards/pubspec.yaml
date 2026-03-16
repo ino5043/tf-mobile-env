@@ -43,6 +43,9 @@ dependencies:
   # Notifications (Local)
   flutter_local_notifications: ^19.0.0
 
+  # TTS (Text-to-Speech)
+  flutter_tts: ^4.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

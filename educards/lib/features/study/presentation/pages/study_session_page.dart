@@ -2,15 +2,75 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:educards/core/di/injection_container.dart';
 import 'package:educards/core/widgets/loading_indicator.dart';
+import 'package:educards/features/audio/domain/tts_service.dart';
+import 'package:educards/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:educards/features/settings/presentation/bloc/settings_state.dart';
 import '../bloc/study_session_bloc.dart';
 import '../bloc/study_session_event.dart';
 import '../bloc/study_session_state.dart';
+import '../widgets/card_content_renderer.dart';
 import '../widgets/flashcard_widget.dart';
 import '../widgets/rating_buttons.dart';
 
-class StudySessionPage extends StatelessWidget {
+class StudySessionPage extends StatefulWidget {
   const StudySessionPage({super.key});
+
+  @override
+  State<StudySessionPage> createState() => _StudySessionPageState();
+}
+
+class _StudySessionPageState extends State<StudySessionPage> {
+  final TtsService _tts = sl<TtsService>();
+  bool _isSpeaking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _applyTtsSpeed();
+  }
+
+  void _applyTtsSpeed() {
+    final settingsState = context.read<SettingsBloc>().state;
+    if (settingsState is SettingsLoaded) {
+      _tts.setRate(settingsState.settings.ttsSpeed);
+    }
+  }
+
+  @override
+  void dispose() {
+    _tts.stop();
+    super.dispose();
+  }
+
+  Future<void> _speakCardText(CardPresented state) async {
+    final renderer = getRenderer(state.card.cardType);
+    final text = renderer.getTextForTts(
+      state.card,
+      isFlipped: state.isFlipped,
+    );
+    if (text.isEmpty) return;
+
+    setState(() => _isSpeaking = true);
+    await _tts.speak(text);
+    if (mounted) {
+      setState(() => _isSpeaking = false);
+    }
+  }
+
+  void _stopSpeaking() {
+    _tts.stop();
+    setState(() => _isSpeaking = false);
+  }
+
+  void _autoReadIfEnabled(CardPresented state) {
+    final settingsState = context.read<SettingsBloc>().state;
+    if (settingsState is SettingsLoaded &&
+        settingsState.settings.autoReadAloud) {
+      _speakCardText(state);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,11 +79,19 @@ class StudySessionPage extends StatelessWidget {
         title: const Text('Study'),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            _stopSpeaking();
+            context.pop();
+          },
           tooltip: 'End study session',
         ),
       ),
-      body: BlocBuilder<StudySessionBloc, StudySessionState>(
+      body: BlocConsumer<StudySessionBloc, StudySessionState>(
+        listener: (context, state) {
+          if (state is CardPresented && !state.isFlipped) {
+            _autoReadIfEnabled(state);
+          }
+        },
         builder: (context, state) => switch (state) {
           StudySessionInitial() => const LoadingIndicator(),
           StudySessionLoading() =>
@@ -85,9 +153,30 @@ class StudySessionPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              '${state.currentIndex + 1} / ${state.totalCards}',
-              style: Theme.of(context).textTheme.labelMedium,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '${state.currentIndex + 1} / ${state.totalCards}',
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+                const SizedBox(width: 8),
+                // TTS read-aloud button
+                IconButton(
+                  icon: Icon(
+                    _isSpeaking ? Icons.stop : Icons.volume_up,
+                  ),
+                  iconSize: 20,
+                  tooltip: _isSpeaking ? 'Stop reading' : 'Read aloud',
+                  onPressed: () {
+                    if (_isSpeaking) {
+                      _stopSpeaking();
+                    } else {
+                      _speakCardText(state);
+                    }
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             // Flashcard

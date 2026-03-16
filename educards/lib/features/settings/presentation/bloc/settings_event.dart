@@ -34,3 +34,19 @@ class UpdateClaudeApiKey extends SettingsEvent {
   @override
   List<Object?> get props => [apiKey];
 }
+
+class UpdateTtsSpeed extends SettingsEvent {
+  final double speed;
+  const UpdateTtsSpeed(this.speed);
+
+  @override
+  List<Object?> get props => [speed];
+}
+
+class UpdateAutoReadAloud extends SettingsEvent {
+  final bool enabled;
+  const UpdateAutoReadAloud(this.enabled);
+
+  @override
+  List<Object?> get props => [enabled];
+}

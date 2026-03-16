@@ -59,6 +59,37 @@ class SettingsPage extends StatelessWidget {
                       .read<SettingsBloc>()
                       .add(UpdateClaudeApiKey(key)),
                 ),
+                const Divider(height: 32),
+                Text(
+                  'Text-to-Speech',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                _buildSliderTile(
+                  context: context,
+                  title: 'Speech Speed',
+                  subtitle: '${settings.ttsSpeed.toStringAsFixed(1)}x',
+                  value: settings.ttsSpeed,
+                  min: 0.5,
+                  max: 2.0,
+                  divisions: 15,
+                  label: '${settings.ttsSpeed.toStringAsFixed(1)}x',
+                  onChanged: (value) => context
+                      .read<SettingsBloc>()
+                      .add(UpdateTtsSpeed(
+                        double.parse(value.toStringAsFixed(1)),
+                      )),
+                ),
+                SwitchListTile(
+                  title: const Text('Auto Read Aloud'),
+                  subtitle: const Text(
+                    'Automatically read card when shown',
+                  ),
+                  value: settings.autoReadAloud,
+                  onChanged: (value) => context
+                      .read<SettingsBloc>()
+                      .add(UpdateAutoReadAloud(value)),
+                ),
               ],
             ),
         },
@@ -74,6 +105,8 @@ class SettingsPage extends StatelessWidget {
     required double min,
     required double max,
     required ValueChanged<double> onChanged,
+    int? divisions,
+    String? label,
   }) {
     return ListTile(
       title: Text(title),
@@ -85,8 +118,8 @@ class SettingsPage extends StatelessWidget {
             value: value,
             min: min,
             max: max,
-            divisions: (max - min).round(),
-            label: value.round().toString(),
+            divisions: divisions ?? (max - min).round(),
+            label: label ?? value.round().toString(),
             onChanged: onChanged,
           ),
         ],

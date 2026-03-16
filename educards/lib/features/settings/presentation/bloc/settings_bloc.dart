@@ -13,6 +13,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<UpdateDailyNewCardLimit>(_onUpdateNewCardLimit);
     on<UpdateDailyReviewCardLimit>(_onUpdateReviewCardLimit);
     on<UpdateClaudeApiKey>(_onUpdateClaudeApiKey);
+    on<UpdateTtsSpeed>(_onUpdateTtsSpeed);
+    on<UpdateAutoReadAloud>(_onUpdateAutoReadAloud);
   }
 
   Future<void> _onLoadSettings(
@@ -65,6 +67,34 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
     final updated = currentState.settings.copyWith(
       claudeApiKey: event.apiKey,
+    );
+    await settingsRepository.saveSettings(updated);
+    emit(SettingsLoaded(updated));
+  }
+
+  Future<void> _onUpdateTtsSpeed(
+    UpdateTtsSpeed event,
+    Emitter<SettingsState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    final updated = currentState.settings.copyWith(
+      ttsSpeed: event.speed,
+    );
+    await settingsRepository.saveSettings(updated);
+    emit(SettingsLoaded(updated));
+  }
+
+  Future<void> _onUpdateAutoReadAloud(
+    UpdateAutoReadAloud event,
+    Emitter<SettingsState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    final updated = currentState.settings.copyWith(
+      autoReadAloud: event.enabled,
     );
     await settingsRepository.saveSettings(updated);
     emit(SettingsLoaded(updated));

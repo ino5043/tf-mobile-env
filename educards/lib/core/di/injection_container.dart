@@ -1,6 +1,8 @@
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../features/audio/data/tts_service_impl.dart';
+import '../../features/audio/domain/tts_service.dart';
 import '../../features/deck/data/datasources/deck_local_datasource.dart';
 import '../../features/deck/data/services/ai_generation_service.dart';
 import '../../features/deck/data/services/deck_import_service.dart';
@@ -60,6 +62,9 @@ Future<void> initDependencies() async {
   final studyBox = await Hive.openBox<StudyRecordModel>('study_records');
   final statsBox = await Hive.openBox<StudyStatsModel>('study_stats');
   final settingsBox = await Hive.openBox<AppSettingsModel>('app_settings');
+
+  // --- TTS Service ---
+  sl.registerLazySingleton<TtsService>(() => TtsServiceImpl());
 
   // --- DataSources ---
   sl.registerLazySingleton<DeckLocalDataSource>(
