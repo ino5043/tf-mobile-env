@@ -8,7 +8,7 @@ import '../../domain/repositories/settings_repository.dart';
 import 'settings_event.dart';
 import 'settings_state.dart';
 
-/// 設定の変更は 1 つずつ順に処理する。キーの保存（安全な保管場所への書き込み）は
+/// 設定の変更は、種類を問わず 1 つずつ順に処理する。キーの保存（安全な保管場所への書き込み）は
 /// 遅いことがあり、並べて処理すると、待っている間の別の変更を古い状態で上書きしてしまう。
 Stream<E> _oneAtATime<E>(Stream<E> events, Stream<E> Function(E) mapper) =>
     events.asyncExpand(mapper);
@@ -20,16 +20,22 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   SettingsBloc({
     required this.settingsRepository,
     required this.apiKeyRepository,
-  })
-      : super(const SettingsInitial()) {
-    on<LoadSettings>(_onLoadSettings, transformer: _oneAtATime);
-    on<UpdateDailyNewCardLimit>(_onUpdateNewCardLimit, transformer: _oneAtATime);
-    on<UpdateDailyReviewCardLimit>(_onUpdateReviewCardLimit, transformer: _oneAtATime);
-    on<UpdateAiProvider>(_onUpdateAiProvider, transformer: _oneAtATime);
-    on<UpdateApiKey>(_onUpdateApiKey, transformer: _oneAtATime);
-    on<UpdateTtsSpeed>(_onUpdateTtsSpeed, transformer: _oneAtATime);
-    on<UpdateAutoReadAloud>(_onUpdateAutoReadAloud, transformer: _oneAtATime);
-    on<UpdateLocale>(_onUpdateLocale, transformer: _oneAtATime);
+  }) : super(const SettingsInitial()) {
+    // 種類ごとに on<> を分けると、種類の違う変更は並んで処理される。
+    // 全部を 1 つの入り口で受け、1 つずつ順に処理する。
+    on<SettingsEvent>(
+      (event, emit) => switch (event) {
+        LoadSettings() => _onLoadSettings(event, emit),
+        UpdateDailyNewCardLimit() => _onUpdateNewCardLimit(event, emit),
+        UpdateDailyReviewCardLimit() => _onUpdateReviewCardLimit(event, emit),
+        UpdateAiProvider() => _onUpdateAiProvider(event, emit),
+        UpdateApiKey() => _onUpdateApiKey(event, emit),
+        UpdateTtsSpeed() => _onUpdateTtsSpeed(event, emit),
+        UpdateAutoReadAloud() => _onUpdateAutoReadAloud(event, emit),
+        UpdateLocale() => _onUpdateLocale(event, emit),
+      },
+      transformer: _oneAtATime,
+    );
   }
 
   Future<void> _onLoadSettings(

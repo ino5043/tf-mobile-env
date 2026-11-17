@@ -91,7 +91,7 @@ class AIGenerationService implements CardGenerator {
     }
     if (bytes.length > ApiConfig.maxMediaBytes) {
       const limitMb = ApiConfig.maxMediaBytes ~/ (1024 * 1024);
-      throw AiRequestException('The file is too large. '
+      throw const AiRequestException('The file is too large. '
           'Please choose a file of $limitMb MB or less.');
     }
   }
