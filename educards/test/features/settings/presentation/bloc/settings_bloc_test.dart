@@ -24,12 +24,16 @@ class _FakeSettingsRepository implements SettingsRepository {
 
 class _FakeApiKeyRepository implements ApiKeyRepository {
   final keys = <AiProvider, String>{};
+  bool failWrites = false;
+  Duration delay = Duration.zero;
 
   @override
   Future<String?> getApiKey(AiProvider provider) async => keys[provider];
 
   @override
   Future<void> saveApiKey(AiProvider provider, String apiKey) async {
+    await Future<void>.delayed(delay);
+    if (failWrites) throw Exception('keystore unavailable');
     final trimmed = apiKey.trim();
     trimmed.isEmpty ? keys.remove(provider) : keys[provider] = trimmed;
   }
@@ -102,6 +106,72 @@ void main() {
         isA<SettingsLoaded>()
             .having((s) => s.configuredProviders, 'configured', isEmpty),
       ],
+    );
+  });
+
+  group('SettingsBloc — key save notices and ordering', () {
+    blocTest<SettingsBloc, SettingsState>(
+      'UpdateApiKey reports that the key was saved',
+      build: () => SettingsBloc(settingsRepository: repository, apiKeyRepository: keys),
+      seed: () => const SettingsLoaded(AppSettings()),
+      act: (bloc) => bloc.add(const UpdateApiKey(AiProvider.openai, 'sk')),
+      expect: () => [
+        isA<SettingsLoaded>().having((s) => s.keyNotice, 'notice',
+            isA<KeySaveNotice>()
+                .having((n) => n.provider, 'provider', AiProvider.openai)
+                .having((n) => n.result, 'result', KeySaveResult.saved)),
+      ],
+    );
+
+    blocTest<SettingsBloc, SettingsState>(
+      'UpdateApiKey reports that the key was removed',
+      setUp: () => keys.keys[AiProvider.openai] = 'sk',
+      build: () => SettingsBloc(settingsRepository: repository, apiKeyRepository: keys),
+      seed: () => const SettingsLoaded(AppSettings()),
+      act: (bloc) => bloc.add(const UpdateApiKey(AiProvider.openai, ' ')),
+      expect: () => [
+        isA<SettingsLoaded>().having(
+            (s) => s.keyNotice?.result, 'result', KeySaveResult.deleted),
+      ],
+    );
+
+    blocTest<SettingsBloc, SettingsState>(
+      'UpdateApiKey reports a failure instead of losing it',
+      setUp: () => keys.failWrites = true,
+      build: () => SettingsBloc(settingsRepository: repository, apiKeyRepository: keys),
+      seed: () => const SettingsLoaded(AppSettings()),
+      act: (bloc) => bloc.add(const UpdateApiKey(AiProvider.gemini, 'AIza')),
+      expect: () => [
+        isA<SettingsLoaded>()
+            .having((s) => s.keyNotice?.result, 'result', KeySaveResult.failed)
+            .having((s) => s.configuredProviders, 'configured', isEmpty),
+      ],
+    );
+
+    blocTest<SettingsBloc, SettingsState>(
+      'the same result twice still gives two separate notices',
+      build: () => SettingsBloc(settingsRepository: repository, apiKeyRepository: keys),
+      seed: () => const SettingsLoaded(AppSettings()),
+      act: (bloc) => bloc
+        ..add(const UpdateApiKey(AiProvider.claude, 'a'))
+        ..add(const UpdateApiKey(AiProvider.claude, 'a')),
+      expect: () => [isA<SettingsLoaded>(), isA<SettingsLoaded>()],
+    );
+
+    blocTest<SettingsBloc, SettingsState>(
+      'a slow key save does not undo a change made meanwhile',
+      setUp: () => keys.delay = const Duration(milliseconds: 50),
+      build: () => SettingsBloc(settingsRepository: repository, apiKeyRepository: keys),
+      seed: () => const SettingsLoaded(AppSettings()),
+      act: (bloc) => bloc
+        ..add(const UpdateApiKey(AiProvider.gemini, 'AIza'))
+        ..add(const UpdateTtsSpeed(1.5)),
+      wait: const Duration(milliseconds: 200),
+      verify: (bloc) {
+        final state = bloc.state as SettingsLoaded;
+        expect(state.settings.ttsSpeed, 1.5);
+        expect(state.configuredProviders, {AiProvider.gemini});
+      },
     );
   });
 

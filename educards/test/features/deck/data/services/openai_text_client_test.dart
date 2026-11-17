@@ -135,6 +135,20 @@ void main() {
       );
     });
 
+    test('hides anything that looks like an API key in the error text', () {
+      const body = '{"error":{"message":"Incorrect API key provided: '
+          'sk-proj-AbCdEf1234567890XyZ. Also AIzaSyD-abcdefghijklmnop and '
+          'sk-ant-api03-qwertyuiopasdfgh"}}';
+      expect(
+        run(http.Response(body, 401)),
+        throwsA(isA<AiRequestException>()
+            .having((e) => e.message, 'message', isNot(contains('AbCdEf1234')))
+            .having((e) => e.message, 'message', isNot(contains('abcdefghijklmnop')))
+            .having((e) => e.message, 'message', isNot(contains('qwertyuiop')))
+            .having((e) => e.message, 'message', contains('Incorrect API key'))),
+      );
+    });
+
     test('times out instead of waiting forever', () {
       final client = OpenAiTextClient(
         client: MockClient((_) => Completer<http.Response>().future),
