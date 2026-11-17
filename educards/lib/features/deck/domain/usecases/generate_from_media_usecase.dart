@@ -1,10 +1,12 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:educards/core/ai/ai_provider.dart';
 import 'package:educards/core/usecases/usecase.dart';
 import '../entities/card_type.dart';
-import '../../data/services/ai_generation_service.dart';
+import '../services/card_generator.dart';
 
 class GenerateFromMediaParams extends Equatable {
+  final AiProvider provider;
   final String apiKey;
   final List<int> fileBytes;
   final String mimeType;
@@ -12,6 +14,7 @@ class GenerateFromMediaParams extends Equatable {
   final CardType cardType;
 
   const GenerateFromMediaParams({
+    required this.provider,
     required this.apiKey,
     required this.fileBytes,
     required this.mimeType,
@@ -20,18 +23,19 @@ class GenerateFromMediaParams extends Equatable {
   });
 
   @override
-  List<Object> get props => [apiKey, fileBytes, mimeType, cardCount, cardType];
+  List<Object> get props => [provider, apiKey, fileBytes, mimeType, cardCount, cardType];
 }
 
 class GenerateFromMediaUseCase
     extends UseCase<List<Map<String, dynamic>>, GenerateFromMediaParams> {
-  final AIGenerationService aiService;
+  final CardGenerator aiService;
 
   GenerateFromMediaUseCase(this.aiService);
 
   @override
   Future<List<Map<String, dynamic>>> call(GenerateFromMediaParams params) {
     return aiService.generateFromMedia(
+      provider: params.provider,
       apiKey: params.apiKey,
       fileBytes: params.fileBytes,
       mimeType: params.mimeType,

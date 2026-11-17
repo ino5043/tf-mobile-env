@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:educards/core/ai/ai_provider.dart';
 import 'package:educards/core/widgets/loading_indicator.dart';
 import 'package:educards/l10n/app_localizations.dart';
 import '../../domain/entities/app_settings.dart';
@@ -20,8 +21,8 @@ class SettingsPage extends StatelessWidget {
         builder: (context, state) => switch (state) {
           SettingsInitial() || SettingsLoading() => const LoadingIndicator(),
           SettingsError(:final message) => Center(child: Text(message)),
-          SettingsLoaded(:final settings) => _buildSettingsList(
-              context, l10n, settings),
+          SettingsLoaded(:final settings, :final configuredProviders) =>
+            _buildSettingsList(context, l10n, settings, configuredProviders),
         },
       ),
     );
@@ -31,6 +32,7 @@ class SettingsPage extends StatelessWidget {
     BuildContext context,
     AppLocalizations l10n,
     AppSettings settings,
+    Set<AiProvider> configuredProviders,
   ) {
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -68,11 +70,34 @@ class SettingsPage extends StatelessWidget {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
+        Text(
+          l10n.settingsAiProvider,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 8),
+        SegmentedButton<AiProvider>(
+          segments: [
+            for (final provider in AiProvider.values)
+              ButtonSegment(
+                value: provider,
+                label: Text(provider.displayName),
+              ),
+          ],
+          selected: {settings.aiProvider},
+          showSelectedIcon: false,
+          onSelectionChanged: (selected) => context
+              .read<SettingsBloc>()
+              .add(UpdateAiProvider(selected.single)),
+        ),
+        const SizedBox(height: 16),
         _ApiKeyField(
-          initialValue: settings.claudeApiKey ?? '',
+          // AI を選び直したら入力欄を作り直し、前の AI のキーが残らないようにする
+          key: ValueKey(settings.aiProvider),
+          provider: settings.aiProvider,
+          isSaved: configuredProviders.contains(settings.aiProvider),
           onSaved: (key) => context
               .read<SettingsBloc>()
-              .add(UpdateClaudeApiKey(key)),
+              .add(UpdateApiKey(settings.aiProvider, key)),
         ),
         const Divider(height: 32),
         Text(
@@ -168,25 +193,29 @@ class SettingsPage extends StatelessWidget {
   }
 }
 
+/// API キーの入力欄。
+///
+/// 保存済みのキーは画面に戻さない（入力欄は常に空から始める）。
+/// キーボードの予測や学習にキーが残らないよう、候補と自動修正を切る。
 class _ApiKeyField extends StatefulWidget {
-  final String initialValue;
+  final AiProvider provider;
+  final bool isSaved;
   final ValueChanged<String> onSaved;
 
-  const _ApiKeyField({required this.initialValue, required this.onSaved});
+  const _ApiKeyField({
+    super.key,
+    required this.provider,
+    required this.isSaved,
+    required this.onSaved,
+  });
 
   @override
   State<_ApiKeyField> createState() => _ApiKeyFieldState();
 }
 
 class _ApiKeyFieldState extends State<_ApiKeyField> {
-  late final TextEditingController _controller;
+  final _controller = TextEditingController();
   bool _obscured = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.initialValue);
-  }
 
   @override
   void dispose() {
@@ -194,30 +223,79 @@ class _ApiKeyFieldState extends State<_ApiKeyField> {
     super.dispose();
   }
 
+  void _save(String value, String message) {
+    widget.onSaved(value);
+    _controller.clear();
+    setState(() => _obscured = true);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return TextField(
-      controller: _controller,
-      obscureText: _obscured,
-      decoration: InputDecoration(
-        labelText: l10n.settingsClaudeApiKey,
-        hintText: l10n.settingsClaudeApiKeyHint,
-        border: const OutlineInputBorder(),
-        suffixIcon: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(_obscured ? Icons.visibility : Icons.visibility_off),
-              onPressed: () => setState(() => _obscured = !_obscured),
+    final name = widget.provider.displayName;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _controller,
+          obscureText: _obscured,
+          autocorrect: false,
+          enableSuggestions: false,
+          keyboardType: TextInputType.visiblePassword,
+          onSubmitted: (value) {
+            if (value.trim().isNotEmpty) {
+              _save(value.trim(), l10n.settingsApiKeySavedMessage(name));
+            }
+          },
+          decoration: InputDecoration(
+            labelText: l10n.settingsApiKeyLabel(name),
+            hintText: widget.isSaved
+                ? l10n.settingsApiKeyHintSaved
+                : l10n.settingsApiKeyHintEmpty,
+            border: const OutlineInputBorder(),
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: _obscured
+                      ? l10n.settingsApiKeyShow
+                      : l10n.settingsApiKeyHide,
+                  icon:
+                      Icon(_obscured ? Icons.visibility : Icons.visibility_off),
+                  onPressed: () => setState(() => _obscured = !_obscured),
+                ),
+                IconButton(
+                  tooltip: l10n.settingsApiKeySave,
+                  icon: const Icon(Icons.save),
+                  onPressed: () {
+                    final value = _controller.text.trim();
+                    if (value.isEmpty) return;
+                    _save(value, l10n.settingsApiKeySavedMessage(name));
+                  },
+                ),
+              ],
             ),
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: () => widget.onSaved(_controller.text.trim()),
-            ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(height: 8),
+        Text(
+          l10n.settingsApiKeyHelp(widget.provider.apiKeyPageUrl),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        if (widget.isSaved)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              icon: const Icon(Icons.delete_outline),
+              label: Text(l10n.settingsApiKeyDelete),
+              onPressed: () =>
+                  _save('', l10n.settingsApiKeyDeletedMessage(name)),
+            ),
+          ),
+      ],
     );
   }
 }

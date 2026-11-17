@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:educards/core/ai/ai_provider.dart';
+
 import '../../domain/entities/app_settings.dart';
 
 sealed class SettingsState extends Equatable {
@@ -20,10 +22,22 @@ class SettingsLoading extends SettingsState {
 class SettingsLoaded extends SettingsState {
   final AppSettings settings;
 
-  const SettingsLoaded(this.settings);
+  /// キーが保存されている AI。キーそのものは持たない。
+  final Set<AiProvider> configuredProviders;
+
+  const SettingsLoaded(this.settings, {this.configuredProviders = const {}});
+
+  SettingsLoaded copyWith({
+    AppSettings? settings,
+    Set<AiProvider>? configuredProviders,
+  }) =>
+      SettingsLoaded(
+        settings ?? this.settings,
+        configuredProviders: configuredProviders ?? this.configuredProviders,
+      );
 
   @override
-  List<Object?> get props => [settings];
+  List<Object?> get props => [settings, configuredProviders];
 }
 
 class SettingsError extends SettingsState {

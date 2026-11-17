@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:educards/core/ai/ai_provider.dart';
+
 sealed class SettingsEvent extends Equatable {
   const SettingsEvent();
 
@@ -27,12 +29,26 @@ class UpdateDailyReviewCardLimit extends SettingsEvent {
   List<Object?> get props => [limit];
 }
 
-class UpdateClaudeApiKey extends SettingsEvent {
-  final String apiKey;
-  const UpdateClaudeApiKey(this.apiKey);
+class UpdateAiProvider extends SettingsEvent {
+  final AiProvider provider;
+  const UpdateAiProvider(this.provider);
 
   @override
-  List<Object?> get props => [apiKey];
+  List<Object?> get props => [provider];
+}
+
+/// [apiKey] が空ならそのAIのキーを消す。
+class UpdateApiKey extends SettingsEvent {
+  final AiProvider provider;
+  final String apiKey;
+  const UpdateApiKey(this.provider, this.apiKey);
+
+  @override
+  List<Object?> get props => [provider, apiKey];
+
+  /// ログに出ることがあるので、キーそのものは出さない。
+  @override
+  String toString() => 'UpdateApiKey(${provider.name})';
 }
 
 class UpdateTtsSpeed extends SettingsEvent {

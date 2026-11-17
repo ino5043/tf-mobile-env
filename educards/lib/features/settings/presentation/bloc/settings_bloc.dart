@@ -3,19 +3,25 @@ import 'dart:ui';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app.dart';
+import '../../domain/repositories/api_key_repository.dart';
 import '../../domain/repositories/settings_repository.dart';
 import 'settings_event.dart';
 import 'settings_state.dart';
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final SettingsRepository settingsRepository;
+  final ApiKeyRepository apiKeyRepository;
 
-  SettingsBloc({required this.settingsRepository})
+  SettingsBloc({
+    required this.settingsRepository,
+    required this.apiKeyRepository,
+  })
       : super(const SettingsInitial()) {
     on<LoadSettings>(_onLoadSettings);
     on<UpdateDailyNewCardLimit>(_onUpdateNewCardLimit);
     on<UpdateDailyReviewCardLimit>(_onUpdateReviewCardLimit);
-    on<UpdateClaudeApiKey>(_onUpdateClaudeApiKey);
+    on<UpdateAiProvider>(_onUpdateAiProvider);
+    on<UpdateApiKey>(_onUpdateApiKey);
     on<UpdateTtsSpeed>(_onUpdateTtsSpeed);
     on<UpdateAutoReadAloud>(_onUpdateAutoReadAloud);
     on<UpdateLocale>(_onUpdateLocale);
@@ -31,7 +37,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       // Restore persisted locale
       localeNotifier.value =
           settings.locale != null ? Locale(settings.locale!) : null;
-      emit(SettingsLoaded(settings));
+      final configured = await apiKeyRepository.configuredProviders();
+      emit(SettingsLoaded(settings, configuredProviders: configured));
     } catch (e) {
       emit(SettingsError(e.toString()));
     }
@@ -48,7 +55,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       dailyNewCardLimit: event.limit,
     );
     await settingsRepository.saveSettings(updated);
-    emit(SettingsLoaded(updated));
+    emit(currentState.copyWith(settings: updated));
   }
 
   Future<void> _onUpdateReviewCardLimit(
@@ -62,21 +69,31 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       dailyReviewCardLimit: event.limit,
     );
     await settingsRepository.saveSettings(updated);
-    emit(SettingsLoaded(updated));
+    emit(currentState.copyWith(settings: updated));
   }
 
-  Future<void> _onUpdateClaudeApiKey(
-    UpdateClaudeApiKey event,
+  Future<void> _onUpdateAiProvider(
+    UpdateAiProvider event,
     Emitter<SettingsState> emit,
   ) async {
     final currentState = state;
     if (currentState is! SettingsLoaded) return;
 
-    final updated = currentState.settings.copyWith(
-      claudeApiKey: event.apiKey,
-    );
+    final updated = currentState.settings.copyWith(aiProvider: event.provider);
     await settingsRepository.saveSettings(updated);
-    emit(SettingsLoaded(updated));
+    emit(currentState.copyWith(settings: updated));
+  }
+
+  Future<void> _onUpdateApiKey(
+    UpdateApiKey event,
+    Emitter<SettingsState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    await apiKeyRepository.saveApiKey(event.provider, event.apiKey);
+    final configured = await apiKeyRepository.configuredProviders();
+    emit(currentState.copyWith(configuredProviders: configured));
   }
 
   Future<void> _onUpdateTtsSpeed(
@@ -90,7 +107,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       ttsSpeed: event.speed,
     );
     await settingsRepository.saveSettings(updated);
-    emit(SettingsLoaded(updated));
+    emit(currentState.copyWith(settings: updated));
   }
 
   Future<void> _onUpdateAutoReadAloud(
@@ -104,7 +121,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       autoReadAloud: event.enabled,
     );
     await settingsRepository.saveSettings(updated);
-    emit(SettingsLoaded(updated));
+    emit(currentState.copyWith(settings: updated));
   }
 
   Future<void> _onUpdateLocale(
@@ -120,6 +137,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     await settingsRepository.saveSettings(updated);
     localeNotifier.value =
         event.locale != null ? Locale(event.locale!) : null;
-    emit(SettingsLoaded(updated));
+    emit(currentState.copyWith(settings: updated));
   }
 }

@@ -1,5 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:educards/core/ai/ai_provider.dart';
+
+import '../../../settings/domain/repositories/api_key_repository.dart';
 import '../../../settings/domain/repositories/settings_repository.dart';
 import '../../domain/entities/card_type.dart';
 import '../../domain/usecases/create_deck_usecase.dart';
@@ -15,6 +18,7 @@ class DeckCreateBloc extends Bloc<DeckCreateEvent, DeckCreateState> {
   final GenerateDeckUseCase generateDeck;
   final GenerateFromMediaUseCase generateFromMedia;
   final SettingsRepository settingsRepository;
+  final ApiKeyRepository apiKeyRepository;
 
   DeckCreateBloc({
     required this.createDeck,
@@ -22,6 +26,7 @@ class DeckCreateBloc extends Bloc<DeckCreateEvent, DeckCreateState> {
     required this.generateDeck,
     required this.generateFromMedia,
     required this.settingsRepository,
+    required this.apiKeyRepository,
   }) : super(const DeckCreateEditing()) {
     on<UpdateTitle>(_onUpdateTitle);
     on<UpdateDescription>(_onUpdateDescription);
@@ -114,6 +119,13 @@ class DeckCreateBloc extends Bloc<DeckCreateEvent, DeckCreateState> {
     }
   }
 
+  /// 設定で選ばれた AI と、その AI のキー（無ければ null）。
+  Future<(AiProvider, String?)> _chosenProviderAndKey() async {
+    final settings = await settingsRepository.getSettings();
+    final provider = settings.aiProvider;
+    return (provider, await apiKeyRepository.getApiKey(provider));
+  }
+
   Future<void> _onGenerateWithAI(
       GenerateWithAI event, Emitter<DeckCreateState> emit) async {
     final current = state;
@@ -122,18 +134,18 @@ class DeckCreateBloc extends Bloc<DeckCreateEvent, DeckCreateState> {
     emit(current.copyWith(isGenerating: true, error: () => null));
 
     try {
-      final settings = await settingsRepository.getSettings();
-      final apiKey = settings.claudeApiKey ?? '';
-      if (apiKey.isEmpty) {
+      final (provider, apiKey) = await _chosenProviderAndKey();
+      if (apiKey == null) {
         emit(current.copyWith(
           isGenerating: false,
-          error: () =>
-              'Claude API key not set. Please configure it in Settings.',
+          error: () => '${provider.displayName} API key not set. '
+              'Please configure it in Settings.',
         ));
         return;
       }
 
       final cards = await generateDeck(GenerateDeckParams(
+        provider: provider,
         apiKey: apiKey,
         topic: event.topic,
         cardCount: event.cardCount,
@@ -184,18 +196,18 @@ class DeckCreateBloc extends Bloc<DeckCreateEvent, DeckCreateState> {
     emit(current.copyWith(isGenerating: true, error: () => null));
 
     try {
-      final settings = await settingsRepository.getSettings();
-      final apiKey = settings.claudeApiKey ?? '';
-      if (apiKey.isEmpty) {
+      final (provider, apiKey) = await _chosenProviderAndKey();
+      if (apiKey == null) {
         emit(current.copyWith(
           isGenerating: false,
-          error: () =>
-              'Claude API key not set. Please configure it in Settings.',
+          error: () => '${provider.displayName} API key not set. '
+              'Please configure it in Settings.',
         ));
         return;
       }
 
       final cards = await generateFromMedia(GenerateFromMediaParams(
+        provider: provider,
         apiKey: apiKey,
         fileBytes: event.fileBytes,
         mimeType: event.mimeType,
