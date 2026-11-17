@@ -7,6 +7,10 @@ import 'package:educards/features/progress/domain/entities/streak_info.dart';
 class TestFixtures {
   static final fixedDate = DateTime(2026, 3, 15, 10, 0);
 
+  // isDue は実行時の現在時刻と比べるため、「まだ来ていない復習日」は固定日ではなく
+  // 現在時刻から見た未来にする。等価テストが壊れないよう、値は実行ごとに 1 回だけ決める。
+  static final futureReviewDate = DateTime.now().add(const Duration(days: 10));
+
   static SpacedRepetitionData get initialSrData => SpacedRepetitionData(
     easeFactor: 2.5,
     interval: 0,
@@ -35,8 +39,7 @@ class TestFixtures {
     easeFactor: 2.7,
     interval: 30,
     repetitions: 8,
-    // isDue は実行時の現在時刻と比べるため、固定日ではなく現在時刻から見た未来にする
-    nextReviewDate: DateTime.now().add(const Duration(days: 10)),
+    nextReviewDate: futureReviewDate,
     mastery: MasteryLevel.mastered,
   );
 
