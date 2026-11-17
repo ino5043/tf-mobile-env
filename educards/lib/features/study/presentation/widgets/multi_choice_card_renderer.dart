@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import 'package:educards/features/deck/domain/entities/flashcard.dart';
+import 'package:educards/l10n/app_localizations.dart';
 import 'card_content_renderer.dart';
 
 /// Renders multiple-choice cards.
@@ -15,6 +16,7 @@ class MultiChoiceCardRenderer implements CardContentRenderer {
 
   @override
   Widget buildFront(BuildContext context, Flashcard card) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final meta = _parseMeta(card.metadata);
     final options = meta?.options ?? [];
@@ -24,7 +26,7 @@ class MultiChoiceCardRenderer implements CardContentRenderer {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Choose the correct answer',
+          l10n.cardRendererChooseAnswer,
           style: theme.textTheme.labelMedium?.copyWith(
             color: theme.colorScheme.outline,
           ),
@@ -57,7 +59,7 @@ class MultiChoiceCardRenderer implements CardContentRenderer {
         }),
         const SizedBox(height: 12),
         Text(
-          'Tap to reveal answer',
+          l10n.cardRendererTapToRevealAnswer,
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.outline,
           ),

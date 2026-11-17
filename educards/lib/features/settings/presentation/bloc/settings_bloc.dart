@@ -1,5 +1,8 @@
+import 'dart:ui';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../app.dart';
 import '../../domain/repositories/settings_repository.dart';
 import 'settings_event.dart';
 import 'settings_state.dart';
@@ -15,6 +18,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<UpdateClaudeApiKey>(_onUpdateClaudeApiKey);
     on<UpdateTtsSpeed>(_onUpdateTtsSpeed);
     on<UpdateAutoReadAloud>(_onUpdateAutoReadAloud);
+    on<UpdateLocale>(_onUpdateLocale);
   }
 
   Future<void> _onLoadSettings(
@@ -24,6 +28,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     emit(const SettingsLoading());
     try {
       final settings = await settingsRepository.getSettings();
+      // Restore persisted locale
+      localeNotifier.value =
+          settings.locale != null ? Locale(settings.locale!) : null;
       emit(SettingsLoaded(settings));
     } catch (e) {
       emit(SettingsError(e.toString()));
@@ -97,6 +104,22 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       autoReadAloud: event.enabled,
     );
     await settingsRepository.saveSettings(updated);
+    emit(SettingsLoaded(updated));
+  }
+
+  Future<void> _onUpdateLocale(
+    UpdateLocale event,
+    Emitter<SettingsState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    final updated = currentState.settings.copyWith(
+      locale: () => event.locale,
+    );
+    await settingsRepository.saveSettings(updated);
+    localeNotifier.value =
+        event.locale != null ? Locale(event.locale!) : null;
     emit(SettingsLoaded(updated));
   }
 }

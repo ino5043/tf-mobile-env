@@ -8,6 +8,7 @@ class AppSettingsModel {
   final String? claudeApiKey;
   final double ttsSpeed;
   final bool autoReadAloud;
+  final String? locale;
 
   const AppSettingsModel({
     required this.dailyNewCardLimit,
@@ -15,6 +16,7 @@ class AppSettingsModel {
     this.claudeApiKey,
     this.ttsSpeed = 1.0,
     this.autoReadAloud = false,
+    this.locale,
   });
 
   factory AppSettingsModel.fromEntity(AppSettings entity) {
@@ -24,6 +26,7 @@ class AppSettingsModel {
       claudeApiKey: entity.claudeApiKey,
       ttsSpeed: entity.ttsSpeed,
       autoReadAloud: entity.autoReadAloud,
+      locale: entity.locale,
     );
   }
 
@@ -34,6 +37,7 @@ class AppSettingsModel {
       claudeApiKey: claudeApiKey,
       ttsSpeed: ttsSpeed,
       autoReadAloud: autoReadAloud,
+      locale: locale,
     );
   }
 }
@@ -55,12 +59,13 @@ class AppSettingsModelAdapter extends TypeAdapter<AppSettingsModel> {
       claudeApiKey: fields[2] as String?,
       ttsSpeed: (fields[3] as double?) ?? 1.0,
       autoReadAloud: (fields[4] as bool?) ?? false,
+      locale: fields[5] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettingsModel obj) {
-    writer.writeByte(5);
+    writer.writeByte(6);
     writer.writeByte(0);
     writer.write(obj.dailyNewCardLimit);
     writer.writeByte(1);
@@ -71,5 +76,7 @@ class AppSettingsModelAdapter extends TypeAdapter<AppSettingsModel> {
     writer.write(obj.ttsSpeed);
     writer.writeByte(4);
     writer.write(obj.autoReadAloud);
+    writer.writeByte(5);
+    writer.write(obj.locale);
   }
 }

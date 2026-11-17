@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:educards/l10n/app_localizations.dart';
 
 class ErrorDisplay extends StatelessWidget {
   final String message;
@@ -12,6 +13,7 @@ class ErrorDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Center(
@@ -24,7 +26,7 @@ class ErrorDisplay extends StatelessWidget {
               Icons.error_outline,
               size: 48,
               color: theme.colorScheme.error,
-              semanticLabel: 'Error',
+              semanticLabel: l10n.errorGeneric,
             ),
             const SizedBox(height: 16),
             Text(
@@ -37,7 +39,7 @@ class ErrorDisplay extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
+                label: Text(l10n.errorRetry),
               ),
             ],
           ],

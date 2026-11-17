@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:educards/l10n/app_localizations.dart';
 import 'package:educards/core/widgets/empty_state.dart';
 import 'package:educards/core/widgets/error_display.dart';
 import 'package:educards/core/widgets/loading_indicator.dart';
@@ -16,6 +17,7 @@ class DeckListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('EduCards'),
@@ -23,7 +25,7 @@ class DeckListPage extends StatelessWidget {
       body: BlocBuilder<DeckListBloc, DeckListState>(
         builder: (context, state) => switch (state) {
           DeckListInitial() => const LoadingIndicator(),
-          DeckListLoading() => const LoadingIndicator(message: 'Loading decks...'),
+          DeckListLoading() => LoadingIndicator(message: l10n.deckListLoading),
           DeckListError(:final message) => ErrorDisplay(
               message: message,
               onRetry: () =>
@@ -31,12 +33,12 @@ class DeckListPage extends StatelessWidget {
             ),
           DeckListLoaded(:final decks) when decks.isEmpty => EmptyState(
               icon: Icons.style_outlined,
-              title: 'No decks yet',
-              subtitle: 'Create your first deck to start learning',
+              title: l10n.deckListEmpty,
+              subtitle: l10n.deckListEmptySubtitle,
               action: FilledButton.icon(
                 onPressed: () => context.push('/decks/create'),
                 icon: const Icon(Icons.add),
-                label: const Text('Create Deck'),
+                label: Text(l10n.deckListCreateButton),
               ),
             ),
           DeckListLoaded(:final decks) => AdaptiveLayout(
@@ -48,7 +50,7 @@ class DeckListPage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/decks/create'),
-        tooltip: 'Create new deck',
+        tooltip: l10n.deckListCreateTooltip,
         child: const Icon(Icons.add),
       ),
     );

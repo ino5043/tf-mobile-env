@@ -6,6 +6,7 @@ import 'package:educards/core/widgets/empty_state.dart';
 import 'package:educards/core/widgets/error_display.dart';
 import 'package:educards/core/widgets/loading_indicator.dart';
 import 'package:educards/features/study/domain/entities/study_queue.dart';
+import 'package:educards/l10n/app_localizations.dart';
 import '../bloc/study_plan_bloc.dart';
 import '../bloc/study_plan_event.dart';
 import '../bloc/study_plan_state.dart';
@@ -15,9 +16,10 @@ class StudyPlanPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Today's Study"),
+        title: Text(l10n.studyPlanTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -27,8 +29,8 @@ class StudyPlanPage extends StatelessWidget {
       ),
       body: BlocBuilder<StudyPlanBloc, StudyPlanState>(
         builder: (context, state) => switch (state) {
-          StudyPlanInitial() || StudyPlanLoading() => const LoadingIndicator(
-              message: 'Loading study plan...',
+          StudyPlanInitial() || StudyPlanLoading() => LoadingIndicator(
+              message: l10n.studyPlanLoading,
             ),
           StudyPlanError(:final message) => ErrorDisplay(
               message: message,
@@ -37,11 +39,10 @@ class StudyPlanPage extends StatelessWidget {
             ),
           StudyPlanLoaded(:final queue) =>
             queue.isEmpty
-                ? const EmptyState(
+                ? EmptyState(
                     icon: Icons.check_circle_outline,
-                    title: 'All done!',
-                    subtitle:
-                        'No cards to study today. Come back tomorrow or add new decks.',
+                    title: l10n.studyPlanAllDone,
+                    subtitle: l10n.studyPlanEmpty,
                   )
                 : _StudyPlanContent(queue: queue),
         },
@@ -57,6 +58,7 @@ class _StudyPlanContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return SafeArea(
       child: SingleChildScrollView(
@@ -70,7 +72,7 @@ class _StudyPlanContent extends StatelessWidget {
                 Expanded(
                   child: _SummaryCard(
                     icon: Icons.fiber_new,
-                    label: 'New',
+                    label: l10n.studyPlanNew,
                     count: queue.newCards.length,
                     color: theme.colorScheme.primary,
                   ),
@@ -79,7 +81,7 @@ class _StudyPlanContent extends StatelessWidget {
                 Expanded(
                   child: _SummaryCard(
                     icon: Icons.refresh,
-                    label: 'Review',
+                    label: l10n.studyPlanReview,
                     count: queue.reviewCards.length,
                     color: theme.colorScheme.secondary,
                   ),
@@ -88,7 +90,7 @@ class _StudyPlanContent extends StatelessWidget {
                 Expanded(
                   child: _SummaryCard(
                     icon: Icons.style,
-                    label: 'Total',
+                    label: l10n.studyPlanTotal,
                     count: queue.totalCards,
                     color: theme.colorScheme.tertiary,
                   ),
@@ -108,7 +110,7 @@ class _StudyPlanContent extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          '${queue.remainingNew + queue.remainingReview} cards deferred to next session',
+                          l10n.studyPlanDeferred(queue.remainingNew + queue.remainingReview),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -122,7 +124,7 @@ class _StudyPlanContent extends StatelessWidget {
             const SizedBox(height: 24),
             // New cards section
             if (queue.newCards.isNotEmpty) ...[
-              Text('New Cards', style: theme.textTheme.titleMedium),
+              Text(l10n.studyPlanNewCards, style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
               ...queue.newCards.map((card) => _CardTile(
                     front: card.front,
@@ -133,7 +135,7 @@ class _StudyPlanContent extends StatelessWidget {
             ],
             if (queue.reviewCards.isNotEmpty) ...[
               const SizedBox(height: 16),
-              Text('Review Cards', style: theme.textTheme.titleMedium),
+              Text(l10n.studyPlanReviewCards, style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
               ...queue.reviewCards.map((card) => _CardTile(
                     front: card.front,

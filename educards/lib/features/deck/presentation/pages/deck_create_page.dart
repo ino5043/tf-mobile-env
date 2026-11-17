@@ -1,12 +1,18 @@
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:educards/l10n/app_localizations.dart';
 import '../../domain/entities/card_type.dart';
 import '../bloc/deck_create_bloc.dart';
 import '../bloc/deck_create_event.dart';
 import '../bloc/deck_create_state.dart';
 import '../widgets/card_input_form.dart';
+
+enum MediaSource { text, pdf, image }
 
 class DeckCreatePage extends StatefulWidget {
   const DeckCreatePage({super.key});
@@ -28,11 +34,12 @@ class _DeckCreatePageState extends State<DeckCreatePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocConsumer<DeckCreateBloc, DeckCreateState>(
       listener: (context, state) {
         if (state is DeckCreateSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Deck created successfully!')),
+            SnackBar(content: Text(l10n.deckCreateSuccess)),
           );
           context.pop();
         } else if (state is DeckCreateFailure) {
@@ -53,12 +60,12 @@ class _DeckCreatePageState extends State<DeckCreatePage> {
           length: 3,
           child: Scaffold(
             appBar: AppBar(
-              title: const Text('Create Deck'),
-              bottom: const TabBar(
+              title: Text(l10n.deckCreateTitle),
+              bottom: TabBar(
                 tabs: [
-                  Tab(icon: Icon(Icons.edit), text: 'Manual'),
-                  Tab(icon: Icon(Icons.file_upload), text: 'Import'),
-                  Tab(icon: Icon(Icons.auto_awesome), text: 'AI Generate'),
+                  Tab(icon: const Icon(Icons.edit), text: l10n.deckCreateTabManual),
+                  Tab(icon: const Icon(Icons.file_upload), text: l10n.deckCreateTabImport),
+                  Tab(icon: const Icon(Icons.auto_awesome), text: l10n.deckCreateTabAI),
                 ],
               ),
               actions: [
@@ -69,7 +76,7 @@ class _DeckCreatePageState extends State<DeckCreatePage> {
                             context.read<DeckCreateBloc>().add(const SubmitDeck())
                         : null,
                     icon: const Icon(Icons.save),
-                    label: const Text('Save'),
+                    label: Text(l10n.deckCreateSave),
                   ),
               ],
             ),
@@ -82,9 +89,9 @@ class _DeckCreatePageState extends State<DeckCreatePage> {
                     children: [
                       TextField(
                         controller: _titleController,
-                        decoration: const InputDecoration(
-                          labelText: 'Deck Title *',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: l10n.deckCreateDeckTitle,
+                          border: const OutlineInputBorder(),
                         ),
                         onChanged: (v) => context
                             .read<DeckCreateBloc>()
@@ -93,9 +100,9 @@ class _DeckCreatePageState extends State<DeckCreatePage> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: _descController,
-                        decoration: const InputDecoration(
-                          labelText: 'Description',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: l10n.deckCreateDescription,
+                          border: const OutlineInputBorder(),
                         ),
                         onChanged: (v) => context
                             .read<DeckCreateBloc>()
@@ -114,7 +121,7 @@ class _DeckCreatePageState extends State<DeckCreatePage> {
                             color: Theme.of(context).colorScheme.primary),
                         const SizedBox(width: 4),
                         Text(
-                          '${editing.cards.length} card(s) added',
+                          l10n.deckCreateCardsAdded(editing.cards.length),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -148,6 +155,7 @@ class _ManualTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -165,7 +173,7 @@ class _ManualTab extends StatelessWidget {
           const SizedBox(height: 16),
           if (cards.isNotEmpty) ...[
             Text(
-              'Cards (${cards.length})',
+              l10n.deckCreateCardsCount(cards.length),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -174,9 +182,9 @@ class _ManualTab extends StatelessWidget {
               final card = entry.value;
               final typeLabel = switch (card.cardType) {
                 CardType.basic => '',
-                CardType.cloze => 'Blank',
-                CardType.multiChoice => 'Choice',
-                CardType.stepByStep => 'Steps',
+                CardType.cloze => l10n.cardTypeCloze,
+                CardType.multiChoice => l10n.cardTypeMultiChoice,
+                CardType.stepByStep => l10n.cardTypeStepByStep,
               };
               return Card(
                 child: ListTile(
@@ -225,6 +233,7 @@ class _ImportTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -232,13 +241,13 @@ class _ImportTab extends StatelessWidget {
         children: [
           const Icon(Icons.file_upload_outlined, size: 64),
           const SizedBox(height: 16),
-          const Text(
-            'Import from File',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Text(
+            l10n.deckCreateImportTitle,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Import cards from CSV or JSON files.',
+          Text(
+            l10n.deckCreateImportSubtitle,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
@@ -248,11 +257,11 @@ class _ImportTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Supported formats:',
+                  Text(l10n.deckCreateImportFormats,
                       style: Theme.of(context).textTheme.titleSmall),
                   const SizedBox(height: 8),
-                  const Text('CSV: front,back (one card per row)'),
-                  const Text('JSON: [{"front":"Q","back":"A"}, ...]'),
+                  Text(l10n.deckCreateImportCsvFormat),
+                  Text(l10n.deckCreateImportJsonFormat),
                 ],
               ),
             ),
@@ -262,7 +271,7 @@ class _ImportTab extends StatelessWidget {
             onPressed: () =>
                 context.read<DeckCreateBloc>().add(const ImportFile()),
             icon: const Icon(Icons.folder_open),
-            label: const Text('Choose File'),
+            label: Text(l10n.deckCreateChooseFile),
           ),
         ],
       ),
@@ -285,6 +294,10 @@ class _AIGenerateTabState extends State<_AIGenerateTab> {
   int _cardCount = 10;
   String _difficulty = 'medium';
   CardType _cardType = CardType.basic;
+  MediaSource _source = MediaSource.text;
+  String? _selectedFileName;
+  Uint8List? _selectedFileBytes;
+  String? _selectedFileMimeType;
 
   @override
   void dispose() {
@@ -292,8 +305,72 @@ class _AIGenerateTabState extends State<_AIGenerateTab> {
     super.dispose();
   }
 
+  Future<void> _pickFile() async {
+    final allowedExtensions = _source == MediaSource.pdf
+        ? ['pdf']
+        : ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: allowedExtensions,
+      withData: true,
+    );
+
+    if (result == null || result.files.isEmpty) return;
+
+    final file = result.files.first;
+    if (file.bytes == null) return;
+
+    String mimeType;
+    if (_source == MediaSource.pdf) {
+      mimeType = 'application/pdf';
+    } else {
+      final ext = file.extension?.toLowerCase() ?? '';
+      mimeType = switch (ext) {
+        'png' => 'image/png',
+        'gif' => 'image/gif',
+        'webp' => 'image/webp',
+        _ => 'image/jpeg',
+      };
+    }
+
+    setState(() {
+      _selectedFileName = file.name;
+      _selectedFileBytes = file.bytes;
+      _selectedFileMimeType = mimeType;
+    });
+  }
+
+  bool get _canGenerate {
+    if (widget.isGenerating) return false;
+    if (_source == MediaSource.text) {
+      return _topicController.text.trim().isNotEmpty;
+    }
+    return _selectedFileBytes != null;
+  }
+
+  void _onGenerate() {
+    if (_source == MediaSource.text) {
+      context.read<DeckCreateBloc>().add(GenerateWithAI(
+            topic: _topicController.text.trim(),
+            cardCount: _cardCount,
+            difficulty: _difficulty,
+            cardType: _cardType,
+          ));
+    } else {
+      context.read<DeckCreateBloc>().add(GenerateFromMedia(
+            fileBytes: _selectedFileBytes!,
+            fileName: _selectedFileName!,
+            mimeType: _selectedFileMimeType!,
+            cardCount: _cardCount,
+            cardType: _cardType,
+          ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -302,28 +379,112 @@ class _AIGenerateTabState extends State<_AIGenerateTab> {
           const Icon(Icons.auto_awesome, size: 48),
           const SizedBox(height: 16),
           Text(
-            'Generate with Claude AI',
+            l10n.deckCreateAITitle,
             style: Theme.of(context).textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
-          TextField(
-            controller: _topicController,
-            decoration: const InputDecoration(
-              labelText: 'Topic',
-              hintText: 'e.g., Docker basics, Japanese JLPT N3',
-              border: OutlineInputBorder(),
-            ),
-            enabled: !widget.isGenerating,
+          const SizedBox(height: 16),
+          // Source selector
+          Text(l10n.deckCreateAISource, style: Theme.of(context).textTheme.bodyMedium),
+          const SizedBox(height: 8),
+          SegmentedButton<MediaSource>(
+            segments: [
+              ButtonSegment(
+                  value: MediaSource.text,
+                  label: Text(l10n.deckCreateAISourceText),
+                  icon: const Icon(Icons.text_fields)),
+              ButtonSegment(
+                  value: MediaSource.pdf,
+                  label: Text(l10n.deckCreateAISourcePdf),
+                  icon: const Icon(Icons.picture_as_pdf)),
+              ButtonSegment(
+                  value: MediaSource.image,
+                  label: Text(l10n.deckCreateAISourceImage),
+                  icon: const Icon(Icons.image)),
+            ],
+            selected: {_source},
+            onSelectionChanged: widget.isGenerating
+                ? null
+                : (v) => setState(() {
+                      _source = v.first;
+                      _selectedFileName = null;
+                      _selectedFileBytes = null;
+                      _selectedFileMimeType = null;
+                    }),
+            showSelectedIcon: false,
           ),
           const SizedBox(height: 16),
+          // Source-specific UI
+          if (_source == MediaSource.text) ...[
+            TextField(
+              controller: _topicController,
+              decoration: InputDecoration(
+                labelText: l10n.deckCreateAITopic,
+                hintText: l10n.deckCreateAITopicHint,
+                border: const OutlineInputBorder(),
+              ),
+              enabled: !widget.isGenerating,
+            ),
+            const SizedBox(height: 16),
+            SegmentedButton<String>(
+              segments: [
+                ButtonSegment(value: 'easy', label: Text(l10n.deckCreateAIDifficultyEasy)),
+                ButtonSegment(value: 'medium', label: Text(l10n.deckCreateAIDifficultyMedium)),
+                ButtonSegment(value: 'hard', label: Text(l10n.deckCreateAIDifficultyHard)),
+              ],
+              selected: {_difficulty},
+              onSelectionChanged: widget.isGenerating
+                  ? null
+                  : (v) => setState(() => _difficulty = v.first),
+            ),
+          ] else ...[
+            // PDF / Image file picker
+            OutlinedButton.icon(
+              onPressed: widget.isGenerating ? null : _pickFile,
+              icon: Icon(_source == MediaSource.pdf
+                  ? Icons.picture_as_pdf
+                  : Icons.image),
+              label: Text(_selectedFileName ?? l10n.deckCreateChooseFile),
+            ),
+            if (_selectedFileName != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        _selectedFileName!,
+                        style: Theme.of(context).textTheme.bodySmall,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.clear, size: 16),
+                      onPressed: () => setState(() {
+                        _selectedFileName = null;
+                        _selectedFileBytes = null;
+                        _selectedFileMimeType = null;
+                      }),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+          const SizedBox(height: 16),
+          // Card count slider (always visible)
           Row(
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Cards: $_cardCount',
+                    Text(l10n.deckCreateAICardsCount(_cardCount),
                         style: Theme.of(context).textTheme.bodyMedium),
                     Slider(
                       value: _cardCount.toDouble(),
@@ -341,31 +502,17 @@ class _AIGenerateTabState extends State<_AIGenerateTab> {
             ],
           ),
           const SizedBox(height: 8),
-          SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'easy', label: Text('Easy')),
-              ButtonSegment(value: 'medium', label: Text('Medium')),
-              ButtonSegment(value: 'hard', label: Text('Hard')),
-            ],
-            selected: {_difficulty},
-            onSelectionChanged: widget.isGenerating
-                ? null
-                : (v) => setState(() => _difficulty = v.first),
-          ),
-          const SizedBox(height: 16),
-          Text('Card Type',
-              style: Theme.of(context).textTheme.bodyMedium),
+          // Card type (always visible)
+          Text(l10n.deckCreateAICardType, style: Theme.of(context).textTheme.bodyMedium),
           const SizedBox(height: 8),
           SegmentedButton<CardType>(
-            segments: const [
+            segments: [
+              ButtonSegment(value: CardType.basic, label: Text(l10n.cardTypeBasic)),
+              ButtonSegment(value: CardType.cloze, label: Text(l10n.cardTypeCloze)),
               ButtonSegment(
-                  value: CardType.basic, label: Text('Q&A')),
+                  value: CardType.multiChoice, label: Text(l10n.cardTypeMultiChoice)),
               ButtonSegment(
-                  value: CardType.cloze, label: Text('Blank')),
-              ButtonSegment(
-                  value: CardType.multiChoice, label: Text('Choice')),
-              ButtonSegment(
-                  value: CardType.stepByStep, label: Text('Steps')),
+                  value: CardType.stepByStep, label: Text(l10n.cardTypeStepByStep)),
             ],
             selected: {_cardType},
             onSelectionChanged: widget.isGenerating
@@ -375,15 +522,7 @@ class _AIGenerateTabState extends State<_AIGenerateTab> {
           ),
           const SizedBox(height: 24),
           FilledButton.icon(
-            onPressed: widget.isGenerating ||
-                    _topicController.text.trim().isEmpty
-                ? null
-                : () => context.read<DeckCreateBloc>().add(GenerateWithAI(
-                      topic: _topicController.text.trim(),
-                      cardCount: _cardCount,
-                      difficulty: _difficulty,
-                      cardType: _cardType,
-                    )),
+            onPressed: _canGenerate ? _onGenerate : null,
             icon: widget.isGenerating
                 ? const SizedBox(
                     width: 16,
@@ -391,13 +530,15 @@ class _AIGenerateTabState extends State<_AIGenerateTab> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.auto_awesome),
-            label: Text(widget.isGenerating ? 'Generating...' : 'Generate'),
+            label: Text(widget.isGenerating ? l10n.deckCreateAIGenerating : l10n.deckCreateAIGenerate),
           ),
           if (widget.isGenerating)
-            const Padding(
-              padding: EdgeInsets.only(top: 16),
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
               child: Text(
-                'Claude AI is generating your flashcards...\nThis may take a few seconds.',
+                _source == MediaSource.text
+                    ? l10n.deckCreateAIGeneratingText
+                    : l10n.deckCreateAIGeneratingMedia,
                 textAlign: TextAlign.center,
               ),
             ),

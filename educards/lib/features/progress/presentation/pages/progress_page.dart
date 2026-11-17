@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:educards/core/widgets/error_display.dart';
 import 'package:educards/core/widgets/loading_indicator.dart';
+import 'package:educards/l10n/app_localizations.dart';
 import '../bloc/progress_bloc.dart';
 import '../bloc/progress_event.dart';
 import '../bloc/progress_state.dart';
@@ -17,16 +18,17 @@ class ProgressPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Progress'),
-          bottom: const TabBar(
+          title: Text(l10n.progressTitle),
+          bottom: TabBar(
             tabs: [
-              Tab(text: 'Overview'),
-              Tab(text: 'Trend'),
-              Tab(text: 'By Deck'),
+              Tab(text: l10n.progressTabOverview),
+              Tab(text: l10n.progressTabTrend),
+              Tab(text: l10n.progressTabByDeck),
             ],
           ),
         ),
@@ -34,7 +36,7 @@ class ProgressPage extends StatelessWidget {
           builder: (context, state) => switch (state) {
             ProgressInitial() => const LoadingIndicator(),
             ProgressLoading() =>
-              const LoadingIndicator(message: 'Loading progress...'),
+              LoadingIndicator(message: l10n.progressLoading),
             ProgressError(:final message) => ErrorDisplay(
                 message: message,
                 onRetry: () =>
@@ -58,7 +60,7 @@ class ProgressPage extends StatelessWidget {
                           StreakCounter(streak: streak),
                           const SizedBox(height: 24),
                           Text(
-                            "Today's Study",
+                            l10n.progressTodayStudy,
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 12),
@@ -67,7 +69,7 @@ class ProgressPage extends StatelessWidget {
                               Expanded(
                                 child: StatsCard(
                                   icon: Icons.style,
-                                  label: 'Cards',
+                                  label: l10n.progressCards,
                                   value: '${todayStats.cardsReviewed}',
                                 ),
                               ),
@@ -75,7 +77,7 @@ class ProgressPage extends StatelessWidget {
                               Expanded(
                                 child: StatsCard(
                                   icon: Icons.check_circle,
-                                  label: 'Correct',
+                                  label: l10n.progressCorrect,
                                   value: '${todayStats.correctCount}',
                                 ),
                               ),
@@ -83,7 +85,7 @@ class ProgressPage extends StatelessWidget {
                               Expanded(
                                 child: StatsCard(
                                   icon: Icons.percent,
-                                  label: 'Accuracy',
+                                  label: l10n.progressAccuracy,
                                   value: todayStats.cardsReviewed > 0
                                       ? '${(todayStats.accuracy * 100).round()}%'
                                       : '-',
@@ -93,7 +95,7 @@ class ProgressPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 24),
                           Text(
-                            'Mastery Distribution',
+                            l10n.progressMasteryDistribution,
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 12),
@@ -111,20 +113,20 @@ class ProgressPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Last 7 Days',
+                            l10n.progressLast7Days,
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 8),
                           Row(
                             children: [
-                              const _LegendDot(
+                              _LegendDot(
                                 color: Colors.green,
-                                label: 'Correct',
+                                label: l10n.progressCorrectLegend,
                               ),
                               const SizedBox(width: 16),
                               _LegendDot(
                                 color: Colors.orange.shade300,
-                                label: 'Incorrect',
+                                label: l10n.progressIncorrectLegend,
                               ),
                             ],
                           ),
@@ -137,15 +139,15 @@ class ProgressPage extends StatelessWidget {
                               child: Column(
                                 children: [
                                   _SummaryRow(
-                                    label: 'Total reviewed',
+                                    label: l10n.progressTotalReviewed,
                                     value: '${trend.totalCardsReviewed}',
                                   ),
                                   _SummaryRow(
-                                    label: 'Total correct',
+                                    label: l10n.progressTotalCorrect,
                                     value: '${trend.totalCorrect}',
                                   ),
                                   _SummaryRow(
-                                    label: 'Average accuracy',
+                                    label: l10n.progressAverageAccuracy,
                                     value: trend.totalCardsReviewed > 0
                                         ? '${(trend.averageAccuracy * 100).round()}%'
                                         : '-',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:educards/features/progress/domain/entities/deck_progress.dart';
+import 'package:educards/l10n/app_localizations.dart';
 
 class DeckProgressList extends StatelessWidget {
   final List<DeckProgress> deckProgressList;
@@ -10,7 +11,7 @@ class DeckProgressList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (deckProgressList.isEmpty) {
-      return const Center(child: Text('No decks yet'));
+      return Center(child: Text(AppLocalizations.of(context).progressDeckListEmpty));
     }
 
     return ListView.builder(
@@ -32,6 +33,7 @@ class _DeckProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final masteryPct = (progress.masteryPercentage * 100).round();
 
     return Card(
@@ -72,22 +74,22 @@ class _DeckProgressCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _StatChip(
-                  label: 'Total',
+                  label: l10n.progressDeckListTotal,
                   value: '${progress.totalCards}',
                   color: theme.colorScheme.onSurface,
                 ),
                 _StatChip(
-                  label: 'Mastered',
+                  label: l10n.progressDeckListMastered,
                   value: '${progress.masteredCount}',
                   color: Colors.green,
                 ),
                 _StatChip(
-                  label: 'Learning',
+                  label: l10n.progressDeckListLearning,
                   value: '${progress.learningCount}',
                   color: Colors.orange,
                 ),
                 _StatChip(
-                  label: 'Due',
+                  label: l10n.progressDeckListDue,
                   value: '${progress.dueCount}',
                   color: theme.colorScheme.error,
                 ),

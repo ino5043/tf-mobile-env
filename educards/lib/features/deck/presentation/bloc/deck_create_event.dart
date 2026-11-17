@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:equatable/equatable.dart';
 
 import '../../domain/entities/card_type.dart';
@@ -77,6 +79,25 @@ class GenerateWithAI extends DeckCreateEvent {
 
   @override
   List<Object?> get props => [topic, cardCount, difficulty, cardType];
+}
+
+class GenerateFromMedia extends DeckCreateEvent {
+  final Uint8List fileBytes;
+  final String fileName;
+  final String mimeType;
+  final int cardCount;
+  final CardType cardType;
+
+  const GenerateFromMedia({
+    required this.fileBytes,
+    required this.fileName,
+    required this.mimeType,
+    required this.cardCount,
+    this.cardType = CardType.basic,
+  });
+
+  @override
+  List<Object?> get props => [fileName, mimeType, cardCount, cardType];
 }
 
 class ImportFile extends DeckCreateEvent {

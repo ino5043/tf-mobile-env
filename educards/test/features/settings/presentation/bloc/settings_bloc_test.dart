@@ -113,4 +113,52 @@ void main() {
       ],
     );
   });
+
+  group('SettingsBloc — Locale', () {
+    blocTest<SettingsBloc, SettingsState>(
+      'UpdateLocale sets locale to ja',
+      build: () => SettingsBloc(settingsRepository: repository),
+      seed: () => const SettingsLoaded(AppSettings()),
+      act: (bloc) => bloc.add(const UpdateLocale('ja')),
+      expect: () => [
+        isA<SettingsLoaded>().having(
+          (s) => s.settings.locale,
+          'locale',
+          'ja',
+        ),
+      ],
+      verify: (_) async {
+        final saved = await repository.getSettings();
+        expect(saved.locale, 'ja');
+      },
+    );
+
+    blocTest<SettingsBloc, SettingsState>(
+      'UpdateLocale with null resets to system default',
+      build: () {
+        repository._settings = const AppSettings(locale: 'ja');
+        return SettingsBloc(settingsRepository: repository);
+      },
+      seed: () => const SettingsLoaded(AppSettings(locale: 'ja')),
+      act: (bloc) => bloc.add(const UpdateLocale(null)),
+      expect: () => [
+        isA<SettingsLoaded>().having(
+          (s) => s.settings.locale,
+          'locale',
+          null,
+        ),
+      ],
+      verify: (_) async {
+        final saved = await repository.getSettings();
+        expect(saved.locale, null);
+      },
+    );
+
+    blocTest<SettingsBloc, SettingsState>(
+      'UpdateLocale does nothing when not in SettingsLoaded state',
+      build: () => SettingsBloc(settingsRepository: repository),
+      act: (bloc) => bloc.add(const UpdateLocale('en')),
+      expect: () => <SettingsState>[],
+    );
+  });
 }

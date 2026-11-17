@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import 'package:educards/features/deck/domain/entities/flashcard.dart';
+import 'package:educards/l10n/app_localizations.dart';
 import 'card_content_renderer.dart';
 
 /// Renders cloze (fill-in-the-blank) cards.
@@ -17,6 +18,7 @@ class ClozeCardRenderer implements CardContentRenderer {
 
   @override
   Widget buildFront(BuildContext context, Flashcard card) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final maskedText = card.front.replaceAllMapped(
       _blankPattern,
@@ -27,7 +29,7 @@ class ClozeCardRenderer implements CardContentRenderer {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Fill in the blank',
+          l10n.cardRendererFillInTheBlank,
           style: theme.textTheme.labelMedium?.copyWith(
             color: theme.colorScheme.outline,
           ),
@@ -40,7 +42,7 @@ class ClozeCardRenderer implements CardContentRenderer {
         ),
         const SizedBox(height: 24),
         Text(
-          'Tap to reveal',
+          l10n.cardRendererTapToRevealAnswer,
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.outline,
           ),
@@ -76,11 +78,12 @@ class ClozeCardRenderer implements CardContentRenderer {
       }
     }
 
+    final l10n = AppLocalizations.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Answer',
+          l10n.cardRendererAnswer,
           style: theme.textTheme.labelMedium?.copyWith(
             color: theme.colorScheme.outline,
           ),

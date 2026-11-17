@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import 'package:educards/l10n/app_localizations.dart';
 import '../../domain/entities/card_type.dart';
 
 class CardInputForm extends StatefulWidget {
@@ -108,12 +109,12 @@ class _CardInputFormState extends State<CardInputForm> {
     });
   }
 
-  String _cardTypeLabel(CardType type) {
+  String _cardTypeLabel(CardType type, AppLocalizations l10n) {
     return switch (type) {
-      CardType.basic => 'Q&A',
-      CardType.cloze => 'Blank',
-      CardType.multiChoice => 'Choice',
-      CardType.stepByStep => 'Steps',
+      CardType.basic => l10n.cardTypeBasic,
+      CardType.cloze => l10n.cardTypeCloze,
+      CardType.multiChoice => l10n.cardTypeMultiChoice,
+      CardType.stepByStep => l10n.cardTypeStepByStep,
     };
   }
 
@@ -128,6 +129,7 @@ class _CardInputFormState extends State<CardInputForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Form(
       key: _formKey,
       child: Card(
@@ -137,7 +139,7 @@ class _CardInputFormState extends State<CardInputForm> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Add Card',
+                l10n.cardInputAddCard,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 12),
@@ -146,7 +148,7 @@ class _CardInputFormState extends State<CardInputForm> {
                     .map((t) => ButtonSegment(
                           value: t,
                           label: Text(
-                            _cardTypeLabel(t),
+                            _cardTypeLabel(t, l10n),
                             style: const TextStyle(fontSize: 11),
                           ),
                           icon: Icon(_cardTypeIcon(t), size: 16),
@@ -161,31 +163,31 @@ class _CardInputFormState extends State<CardInputForm> {
               TextFormField(
                 controller: _frontController,
                 decoration: InputDecoration(
-                  labelText: _frontLabel,
-                  helperText: _frontHelper,
+                  labelText: _frontLabel(l10n),
+                  helperText: _frontHelper(l10n),
                   border: const OutlineInputBorder(),
                 ),
                 maxLines: 2,
                 validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    (v == null || v.trim().isEmpty) ? l10n.cardInputRequired : null,
               ),
               const SizedBox(height: 12),
               ..._buildTypeSpecificFields(context),
               TextFormField(
                 controller: _backController,
                 decoration: InputDecoration(
-                  labelText: _backLabel,
+                  labelText: _backLabel(l10n),
                   border: const OutlineInputBorder(),
                 ),
                 maxLines: 2,
                 validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    (v == null || v.trim().isEmpty) ? l10n.cardInputRequired : null,
               ),
               const SizedBox(height: 12),
               FilledButton.icon(
                 onPressed: _submit,
                 icon: const Icon(Icons.add),
-                label: const Text('Add Card'),
+                label: Text(l10n.cardInputAddCard),
               ),
             ],
           ),
@@ -194,23 +196,23 @@ class _CardInputFormState extends State<CardInputForm> {
     );
   }
 
-  String get _frontLabel => switch (_selectedType) {
-        CardType.basic => 'Front (Question)',
-        CardType.cloze => 'Text with {{blanks}}',
-        CardType.multiChoice => 'Question',
-        CardType.stepByStep => 'Problem',
+  String _frontLabel(AppLocalizations l10n) => switch (_selectedType) {
+        CardType.basic => l10n.cardInputFrontBasic,
+        CardType.cloze => l10n.cardInputFrontCloze,
+        CardType.multiChoice => l10n.cardInputFrontMultiChoice,
+        CardType.stepByStep => l10n.cardInputFrontStepByStep,
       };
 
-  String? get _frontHelper => switch (_selectedType) {
-        CardType.cloze => 'Use {{word}} to mark blanks',
+  String? _frontHelper(AppLocalizations l10n) => switch (_selectedType) {
+        CardType.cloze => l10n.cardInputFrontClozeHint,
         _ => null,
       };
 
-  String get _backLabel => switch (_selectedType) {
-        CardType.basic => 'Back (Answer)',
-        CardType.cloze => 'Full answer',
-        CardType.multiChoice => 'Explanation',
-        CardType.stepByStep => 'Final answer',
+  String _backLabel(AppLocalizations l10n) => switch (_selectedType) {
+        CardType.basic => l10n.cardInputBackBasic,
+        CardType.cloze => l10n.cardInputBackCloze,
+        CardType.multiChoice => l10n.cardInputBackMultiChoice,
+        CardType.stepByStep => l10n.cardInputBackStepByStep,
       };
 
   List<Widget> _buildTypeSpecificFields(BuildContext context) {
@@ -223,8 +225,9 @@ class _CardInputFormState extends State<CardInputForm> {
   }
 
   List<Widget> _buildMultiChoiceFields(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return [
-      Text('Options', style: Theme.of(context).textTheme.labelLarge),
+      Text(l10n.cardInputOptions, style: Theme.of(context).textTheme.labelLarge),
       const SizedBox(height: 8),
       ...List.generate(4, (i) {
         final label = String.fromCharCode(65 + i);
@@ -248,12 +251,12 @@ class _CardInputFormState extends State<CardInputForm> {
                 child: TextFormField(
                   controller: _optionControllers[i],
                   decoration: InputDecoration(
-                    labelText: 'Option $label',
+                    labelText: l10n.cardInputOption(label),
                     isDense: true,
                     border: const OutlineInputBorder(),
                   ),
                   validator: (v) => i < 2 && (v == null || v.trim().isEmpty)
-                      ? 'At least 2 options'
+                      ? l10n.cardInputOptionsMin
                       : null,
                 ),
               ),
@@ -266,17 +269,18 @@ class _CardInputFormState extends State<CardInputForm> {
   }
 
   List<Widget> _buildStepByStepFields(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return [
       TextFormField(
         controller: _hintController,
-        decoration: const InputDecoration(
-          labelText: 'Hint (optional)',
-          prefixIcon: Icon(Icons.lightbulb_outline),
-          border: OutlineInputBorder(),
+        decoration: InputDecoration(
+          labelText: l10n.cardInputHint,
+          prefixIcon: const Icon(Icons.lightbulb_outline),
+          border: const OutlineInputBorder(),
         ),
       ),
       const SizedBox(height: 12),
-      Text('Solution Steps', style: Theme.of(context).textTheme.labelLarge),
+      Text(l10n.cardInputSolutionSteps, style: Theme.of(context).textTheme.labelLarge),
       const SizedBox(height: 8),
       ...List.generate(_stepsControllers.length, (i) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -291,7 +295,7 @@ class _CardInputFormState extends State<CardInputForm> {
                   child: TextFormField(
                     controller: _stepsControllers[i],
                     decoration: InputDecoration(
-                      labelText: 'Step ${i + 1}',
+                      labelText: l10n.cardInputStep(i + 1),
                       isDense: true,
                       border: const OutlineInputBorder(),
                     ),
@@ -315,7 +319,7 @@ class _CardInputFormState extends State<CardInputForm> {
           setState(() => _stepsControllers.add(TextEditingController()));
         },
         icon: const Icon(Icons.add, size: 16),
-        label: const Text('Add Step'),
+        label: Text(l10n.cardInputAddStep),
       ),
       const SizedBox(height: 4),
     ];

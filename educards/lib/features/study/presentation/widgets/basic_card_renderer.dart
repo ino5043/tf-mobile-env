@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:educards/features/deck/domain/entities/flashcard.dart';
+import 'package:educards/l10n/app_localizations.dart';
 import 'card_content_renderer.dart';
 
 /// Renders standard question/answer cards.
@@ -9,12 +10,13 @@ class BasicCardRenderer implements CardContentRenderer {
 
   @override
   Widget buildFront(BuildContext context, Flashcard card) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Question',
+          l10n.cardRendererQuestion,
           style: theme.textTheme.labelMedium?.copyWith(
             color: theme.colorScheme.outline,
           ),
@@ -27,7 +29,7 @@ class BasicCardRenderer implements CardContentRenderer {
         ),
         const SizedBox(height: 24),
         Text(
-          'Tap to reveal',
+          l10n.cardRendererTapToReveal,
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.outline,
           ),
@@ -38,12 +40,13 @@ class BasicCardRenderer implements CardContentRenderer {
 
   @override
   Widget buildBack(BuildContext context, Flashcard card) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Answer',
+          l10n.cardRendererAnswer,
           style: theme.textTheme.labelMedium?.copyWith(
             color: theme.colorScheme.outline,
           ),

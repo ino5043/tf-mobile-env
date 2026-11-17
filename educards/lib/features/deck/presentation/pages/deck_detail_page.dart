@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:educards/l10n/app_localizations.dart';
 import 'package:educards/features/study/domain/entities/spaced_repetition_data.dart';
 import '../bloc/deck_detail_bloc.dart';
 import '../bloc/deck_detail_event.dart';
@@ -15,6 +16,7 @@ class DeckDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocConsumer<DeckDetailBloc, DeckDetailState>(
       listener: (context, state) {
         if (state is DeckDetailLoaded && state.exportedJson != null) {
@@ -23,11 +25,11 @@ class DeckDetailPage extends StatelessWidget {
       },
       builder: (context, state) => switch (state) {
         DeckDetailLoading() => Scaffold(
-            appBar: AppBar(title: const Text('Deck')),
+            appBar: AppBar(title: Text(l10n.deckDetailTitle)),
             body: const Center(child: CircularProgressIndicator()),
           ),
         DeckDetailError(:final message) => Scaffold(
-            appBar: AppBar(title: const Text('Deck')),
+            appBar: AppBar(title: Text(l10n.deckDetailTitle)),
             body: Center(child: Text(message)),
           ),
         DeckDetailLoaded(:final deck) => _buildContent(context, deck),
@@ -38,6 +40,7 @@ class DeckDetailPage extends StatelessWidget {
   Widget _buildContent(BuildContext context, Deck deck) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -45,7 +48,7 @@ class DeckDetailPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            tooltip: 'Edit deck',
+            tooltip: l10n.deckDetailEdit,
             onPressed: () async {
               await context.push('/decks/${deck.id}/edit');
               if (context.mounted) {
@@ -55,7 +58,7 @@ class DeckDetailPage extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.file_download_outlined),
-            tooltip: 'Export deck',
+            tooltip: l10n.deckDetailExport,
             onPressed: () {
               context.read<DeckDetailBloc>().add(const ExportDeck());
             },
@@ -76,14 +79,14 @@ class DeckDetailPage extends StatelessWidget {
               children: [
                 _StatCard(
                   icon: Icons.style,
-                  label: 'Total',
+                  label: l10n.deckDetailTotal,
                   value: '${deck.totalCards}',
                   color: colorScheme.primary,
                 ),
                 const SizedBox(width: 12),
                 _StatCard(
                   icon: Icons.schedule,
-                  label: 'Due',
+                  label: l10n.deckDetailDue,
                   value: '${deck.dueCards}',
                   color: deck.dueCards > 0
                       ? colorScheme.error
@@ -92,7 +95,7 @@ class DeckDetailPage extends StatelessWidget {
                 const SizedBox(width: 12),
                 _StatCard(
                   icon: Icons.trending_up,
-                  label: 'Mastery',
+                  label: l10n.deckDetailMastery,
                   value: '${(deck.masteryPercentage * 100).round()}%',
                   color: Colors.green,
                 ),
@@ -109,15 +112,31 @@ class DeckDetailPage extends StatelessWidget {
                 icon: const Icon(Icons.play_arrow),
                 label: Text(
                   deck.dueCards > 0
-                      ? 'Study Now (${deck.dueCards} due)'
-                      : 'No cards due',
+                      ? l10n.deckDetailStudyNow(deck.dueCards)
+                      : l10n.deckDetailNoCardsDue,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Listen mode button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: deck.totalCards > 0
+                    ? () => context.push('/listen/${deck.id}')
+                    : null,
+                icon: const Icon(Icons.headphones),
+                label: Text(
+                  deck.totalCards > 0
+                      ? l10n.deckDetailListenMode(deck.totalCards)
+                      : l10n.deckDetailNoCardsToListen,
                 ),
               ),
             ),
             const SizedBox(height: 24),
             // Cards list
             Text(
-              'Cards (${deck.totalCards})',
+              l10n.deckDetailCardsCount(deck.totalCards),
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -132,10 +151,11 @@ class DeckDetailPage extends StatelessWidget {
   }
 
   void _showExportDialog(BuildContext context, String json) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Export Deck'),
+        title: Text(l10n.deckDetailExportTitle),
         content: SizedBox(
           width: double.maxFinite,
           height: 300,
@@ -152,14 +172,14 @@ class DeckDetailPage extends StatelessWidget {
               Clipboard.setData(ClipboardData(text: json));
               Navigator.of(dialogContext).pop();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Copied to clipboard')),
+                SnackBar(content: Text(l10n.deckDetailCopied)),
               );
             },
-            child: const Text('Copy to Clipboard'),
+            child: Text(l10n.deckDetailCopyButton),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Close'),
+            child: Text(l10n.deckDetailClose),
           ),
         ],
       ),
@@ -215,7 +235,7 @@ class _FlashcardTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final masteryColor = _masteryColor(card.srData.mastery);
-    final masteryLabel = _masteryLabel(card.srData.mastery);
+    final masteryLabel = _masteryLabel(context, card.srData.mastery);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -273,12 +293,13 @@ class _FlashcardTile extends StatelessWidget {
     };
   }
 
-  String _masteryLabel(MasteryLevel level) {
+  String _masteryLabel(BuildContext context, MasteryLevel level) {
+    final l10n = AppLocalizations.of(context);
     return switch (level) {
-      MasteryLevel.newCard => 'New',
-      MasteryLevel.learning => 'Learning',
-      MasteryLevel.review => 'Review',
-      MasteryLevel.mastered => 'Mastered',
+      MasteryLevel.newCard => l10n.deckDetailStatusNew,
+      MasteryLevel.learning => l10n.deckDetailStatusLearning,
+      MasteryLevel.review => l10n.deckDetailStatusReview,
+      MasteryLevel.mastered => l10n.deckDetailStatusMastered,
     };
   }
 }

@@ -12,6 +12,7 @@ void main() {
         claudeApiKey: 'sk-test',
         ttsSpeed: 1.5,
         autoReadAloud: true,
+        locale: 'ja',
       );
 
       final model = AppSettingsModel.fromEntity(entity);
@@ -21,6 +22,7 @@ void main() {
       expect(model.claudeApiKey, 'sk-test');
       expect(model.ttsSpeed, 1.5);
       expect(model.autoReadAloud, true);
+      expect(model.locale, 'ja');
     });
 
     test('toEntity preserves all fields', () {
@@ -30,6 +32,7 @@ void main() {
         claudeApiKey: 'key-123',
         ttsSpeed: 0.8,
         autoReadAloud: true,
+        locale: 'en',
       );
 
       final entity = model.toEntity();
@@ -39,6 +42,7 @@ void main() {
       expect(entity.claudeApiKey, 'key-123');
       expect(entity.ttsSpeed, 0.8);
       expect(entity.autoReadAloud, true);
+      expect(entity.locale, 'en');
     });
 
     test('default values for ttsSpeed and autoReadAloud', () {

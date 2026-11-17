@@ -7,6 +7,8 @@ class AppSettings extends Equatable {
   final String? claudeApiKey;
   final double ttsSpeed;
   final bool autoReadAloud;
+  /// Locale code ('en', 'ja') or null for system default.
+  final String? locale;
 
   const AppSettings({
     this.dailyNewCardLimit = 10,
@@ -14,6 +16,7 @@ class AppSettings extends Equatable {
     this.claudeApiKey,
     this.ttsSpeed = 1.0,
     this.autoReadAloud = false,
+    this.locale,
   });
 
   AppSettings copyWith({
@@ -22,6 +25,7 @@ class AppSettings extends Equatable {
     String? claudeApiKey,
     double? ttsSpeed,
     bool? autoReadAloud,
+    String? Function()? locale,
   }) {
     return AppSettings(
       dailyNewCardLimit: dailyNewCardLimit ?? this.dailyNewCardLimit,
@@ -29,6 +33,7 @@ class AppSettings extends Equatable {
       claudeApiKey: claudeApiKey ?? this.claudeApiKey,
       ttsSpeed: ttsSpeed ?? this.ttsSpeed,
       autoReadAloud: autoReadAloud ?? this.autoReadAloud,
+      locale: locale != null ? locale() : this.locale,
     );
   }
 
@@ -39,5 +44,6 @@ class AppSettings extends Equatable {
         claudeApiKey,
         ttsSpeed,
         autoReadAloud,
+        locale,
       ];
 }

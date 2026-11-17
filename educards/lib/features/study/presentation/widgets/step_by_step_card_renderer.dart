@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import 'package:educards/features/deck/domain/entities/flashcard.dart';
+import 'package:educards/l10n/app_localizations.dart';
 import 'card_content_renderer.dart';
 
 /// Renders step-by-step solution cards (math, problem-solving).
@@ -15,6 +16,7 @@ class StepByStepCardRenderer implements CardContentRenderer {
 
   @override
   Widget buildFront(BuildContext context, Flashcard card) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final meta = _parseMeta(card.metadata);
     final hints = meta?.hints ?? [];
@@ -24,7 +26,7 @@ class StepByStepCardRenderer implements CardContentRenderer {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Problem',
+          l10n.cardRendererProblem,
           style: theme.textTheme.labelMedium?.copyWith(
             color: theme.colorScheme.outline,
           ),
@@ -53,7 +55,7 @@ class StepByStepCardRenderer implements CardContentRenderer {
                         size: 16, color: theme.colorScheme.tertiary),
                     const SizedBox(width: 4),
                     Text(
-                      'Hints',
+                      l10n.cardRendererHints,
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: theme.colorScheme.tertiary,
                       ),
@@ -80,7 +82,7 @@ class StepByStepCardRenderer implements CardContentRenderer {
         ],
         const SizedBox(height: 24),
         Text(
-          'Tap to reveal solution',
+          l10n.cardRendererTapToRevealSolution,
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.outline,
           ),
@@ -92,6 +94,7 @@ class StepByStepCardRenderer implements CardContentRenderer {
 
   @override
   Widget buildBack(BuildContext context, Flashcard card) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final meta = _parseMeta(card.metadata);
     final steps = meta?.steps ?? [];
@@ -101,7 +104,7 @@ class StepByStepCardRenderer implements CardContentRenderer {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Solution',
+          l10n.cardRendererSolution,
           style: theme.textTheme.labelMedium?.copyWith(
             color: theme.colorScheme.outline,
           ),

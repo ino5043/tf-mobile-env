@@ -7,6 +7,7 @@ import 'package:educards/core/widgets/loading_indicator.dart';
 import 'package:educards/features/audio/domain/tts_service.dart';
 import 'package:educards/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:educards/features/settings/presentation/bloc/settings_state.dart';
+import 'package:educards/l10n/app_localizations.dart';
 import '../bloc/study_session_bloc.dart';
 import '../bloc/study_session_event.dart';
 import '../bloc/study_session_state.dart';
@@ -74,16 +75,17 @@ class _StudySessionPageState extends State<StudySessionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Study'),
+        title: Text(l10n.studyTitle),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () {
             _stopSpeaking();
             context.pop();
           },
-          tooltip: 'End study session',
+          tooltip: l10n.studyEndSession,
         ),
       ),
       body: BlocConsumer<StudySessionBloc, StudySessionState>(
@@ -95,7 +97,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
         builder: (context, state) => switch (state) {
           StudySessionInitial() => const LoadingIndicator(),
           StudySessionLoading() =>
-            const LoadingIndicator(message: 'Loading cards...'),
+            LoadingIndicator(message: l10n.studyLoading),
           StudySessionEmpty() => _buildEmptyState(context),
           StudySessionError(:final message) => _buildError(context, message),
           CardPresented() => _buildStudyCard(context, state),
@@ -106,6 +108,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -117,18 +120,18 @@ class _StudySessionPageState extends State<StudySessionPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            'All caught up!',
+            l10n.studyEmpty,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 8),
           Text(
-            'No cards due for review right now.',
+            l10n.studyEmptySubtitle,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 24),
           FilledButton(
             onPressed: () => context.pop(),
-            child: const Text('Back to Decks'),
+            child: Text(l10n.studyBackToDecks),
           ),
         ],
       ),
@@ -140,6 +143,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
   }
 
   Widget _buildStudyCard(BuildContext context, CardPresented state) {
+    final l10n = AppLocalizations.of(context);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -147,7 +151,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
           children: [
             // Progress indicator
             Semantics(
-              label: 'Card ${state.currentIndex + 1} of ${state.totalCards}',
+              label: l10n.studyCardProgress(state.currentIndex + 1, state.totalCards),
               child: LinearProgressIndicator(
                 value: (state.currentIndex + 1) / state.totalCards,
               ),
@@ -167,7 +171,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
                     _isSpeaking ? Icons.stop : Icons.volume_up,
                   ),
                   iconSize: 20,
-                  tooltip: _isSpeaking ? 'Stop reading' : 'Read aloud',
+                  tooltip: _isSpeaking ? l10n.studyStopReading : l10n.studyReadAloud,
                   onPressed: () {
                     if (_isSpeaking) {
                       _stopSpeaking();
@@ -202,6 +206,7 @@ class _StudySessionPageState extends State<StudySessionPage> {
   }
 
   Widget _buildComplete(BuildContext context, StudySessionComplete state) {
+    final l10n = AppLocalizations.of(context);
     final accuracy = state.cardsReviewed > 0
         ? (state.correctCount / state.cardsReviewed * 100).round()
         : 0;
@@ -213,16 +218,16 @@ class _StudySessionPageState extends State<StudySessionPage> {
           const Icon(Icons.celebration, size: 64),
           const SizedBox(height: 16),
           Text(
-            'Session Complete!',
+            l10n.studyComplete,
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 16),
-          Text('Cards reviewed: ${state.cardsReviewed}'),
-          Text('Accuracy: $accuracy%'),
+          Text(l10n.studyCardsReviewed(state.cardsReviewed)),
+          Text(l10n.studyAccuracy(accuracy)),
           const SizedBox(height: 24),
           FilledButton(
             onPressed: () => context.pop(),
-            child: const Text('Done'),
+            child: Text(l10n.studyDone),
           ),
         ],
       ),

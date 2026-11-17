@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'core/di/injection_container.dart';
 import 'core/theme/app_theme.dart';
+import 'l10n/app_localizations.dart';
 import 'features/deck/presentation/bloc/deck_create_bloc.dart';
 import 'features/deck/presentation/bloc/deck_detail_bloc.dart';
 import 'features/deck/presentation/bloc/deck_detail_event.dart';
@@ -23,8 +24,11 @@ import 'features/settings/presentation/bloc/settings_event.dart';
 import 'features/settings/presentation/pages/settings_page.dart';
 import 'features/study/presentation/bloc/study_plan_bloc.dart';
 import 'features/study/presentation/bloc/study_plan_event.dart';
+import 'features/study/presentation/bloc/listen_mode_bloc.dart';
+import 'features/study/presentation/bloc/listen_mode_event.dart';
 import 'features/study/presentation/bloc/study_session_bloc.dart';
 import 'features/study/presentation/bloc/study_session_event.dart';
+import 'features/study/presentation/pages/listen_mode_page.dart';
 import 'features/study/presentation/pages/study_plan_page.dart';
 import 'features/study/presentation/pages/study_session_page.dart';
 
@@ -113,10 +117,29 @@ final _router = GoRouter(
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) {
         final deckId = state.pathParameters['deckId']!;
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) =>
+                  sl<StudySessionBloc>()..add(StartStudySession(deckId)),
+            ),
+            BlocProvider(
+              create: (_) => sl<SettingsBloc>()..add(const LoadSettings()),
+            ),
+          ],
+          child: const StudySessionPage(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/listen/:deckId',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        final deckId = state.pathParameters['deckId']!;
         return BlocProvider(
           create: (_) =>
-              sl<StudySessionBloc>()..add(StartStudySession(deckId)),
-          child: const StudySessionPage(),
+              sl<ListenModeBloc>()..add(StartListenMode(deckId)),
+          child: const ListenModePage(),
         );
       },
     ),
@@ -131,18 +154,29 @@ final _router = GoRouter(
   ],
 );
 
+/// Global locale notifier — controlled by SettingsBloc.
+final localeNotifier = ValueNotifier<Locale?>(null);
+
 class EduCardsApp extends StatelessWidget {
   const EduCardsApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'EduCards',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
-      routerConfig: _router,
+    return ValueListenableBuilder<Locale?>(
+      valueListenable: localeNotifier,
+      builder: (context, locale, _) {
+        return MaterialApp.router(
+          title: 'EduCards',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: ThemeMode.system,
+          locale: locale,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: _router,
+        );
+      },
     );
   }
 }
@@ -167,21 +201,21 @@ class ScaffoldWithNavigation extends StatelessWidget {
             initialLocation: index == navigationShell.currentIndex,
           );
         },
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.style_outlined),
-            selectedIcon: Icon(Icons.style),
-            label: 'Decks',
+            icon: const Icon(Icons.style_outlined),
+            selectedIcon: const Icon(Icons.style),
+            label: AppLocalizations.of(context).navDecks,
           ),
           NavigationDestination(
-            icon: Icon(Icons.today_outlined),
-            selectedIcon: Icon(Icons.today),
-            label: 'Study',
+            icon: const Icon(Icons.today_outlined),
+            selectedIcon: const Icon(Icons.today),
+            label: AppLocalizations.of(context).navStudy,
           ),
           NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
-            label: 'Progress',
+            icon: const Icon(Icons.bar_chart_outlined),
+            selectedIcon: const Icon(Icons.bar_chart),
+            label: AppLocalizations.of(context).navProgress,
           ),
         ],
       ),

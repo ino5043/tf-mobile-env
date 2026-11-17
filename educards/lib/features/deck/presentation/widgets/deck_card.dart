@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:educards/l10n/app_localizations.dart';
 import '../../domain/entities/deck.dart';
 
 class DeckCard extends StatelessWidget {
@@ -16,11 +17,12 @@ class DeckCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return Semantics(
-      label: '${deck.title}. ${deck.totalCards} cards, ${deck.dueCards} due.',
+      label: '${deck.title}. ${l10n.deckCardSemantics(deck.totalCards, deck.dueCards)}',
       button: true,
       child: Card(
         child: InkWell(
@@ -44,7 +46,7 @@ class DeckCard extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.delete_outline, size: 20),
                       onPressed: onDelete,
-                      tooltip: 'Delete deck',
+                      tooltip: l10n.deckCardDeleteTooltip,
                       constraints: const BoxConstraints(
                         minWidth: 48,
                         minHeight: 48,
@@ -72,7 +74,7 @@ class DeckCard extends StatelessWidget {
                     const SizedBox(width: 12),
                     _StatChip(
                       icon: Icons.schedule,
-                      label: '${deck.dueCards} due',
+                      label: l10n.deckCardDue(deck.dueCards),
                       color: deck.dueCards > 0
                           ? colorScheme.error
                           : colorScheme.outline,

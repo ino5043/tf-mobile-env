@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:educards/l10n/app_localizations.dart';
 import '../../domain/entities/card_type.dart';
 import '../bloc/deck_edit_bloc.dart';
 import '../bloc/deck_edit_event.dart';
@@ -13,11 +14,12 @@ class DeckEditPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BlocConsumer<DeckEditBloc, DeckEditState>(
       listener: (context, state) {
         if (state is DeckEditSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Deck saved')),
+            SnackBar(content: Text(l10n.deckEditSaved)),
           );
           context.pop();
         } else if (state is DeckEditFailure) {
@@ -32,11 +34,11 @@ class DeckEditPage extends StatelessWidget {
       },
       builder: (context, state) => switch (state) {
         DeckEditLoading() => Scaffold(
-            appBar: AppBar(title: const Text('Edit Deck')),
+            appBar: AppBar(title: Text(l10n.deckEditTitle)),
             body: const Center(child: CircularProgressIndicator()),
           ),
         DeckEditFailure(:final message) => Scaffold(
-            appBar: AppBar(title: const Text('Edit Deck')),
+            appBar: AppBar(title: Text(l10n.deckEditTitle)),
             body: Center(child: Text(message)),
           ),
         DeckEditSuccess() => const Scaffold(
@@ -89,11 +91,12 @@ class _DeckEditFormState extends State<_DeckEditForm> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final state = widget.state;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Deck'),
+        title: Text(l10n.deckEditTitle),
         actions: [
           FilledButton(
             onPressed: state.canSave && !state.isSaving
@@ -106,7 +109,7 @@ class _DeckEditFormState extends State<_DeckEditForm> {
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Save'),
+                : Text(l10n.deckEditSave),
           ),
           const SizedBox(width: 8),
         ],
@@ -119,9 +122,9 @@ class _DeckEditFormState extends State<_DeckEditForm> {
             // Title
             TextField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.deckEditFieldTitle,
+                border: const OutlineInputBorder(),
               ),
               onChanged: (value) {
                 context
@@ -133,9 +136,9 @@ class _DeckEditFormState extends State<_DeckEditForm> {
             // Description
             TextField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.deckEditFieldDescription,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 2,
               onChanged: (value) {
@@ -149,7 +152,7 @@ class _DeckEditFormState extends State<_DeckEditForm> {
             Row(
               children: [
                 Text(
-                  'Cards (${state.cards.length})',
+                  l10n.deckEditCardsCount(state.cards.length),
                   style: theme.textTheme.titleMedium,
                 ),
                 const Spacer(),
@@ -224,6 +227,7 @@ class _ViewCardTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -245,7 +249,7 @@ class _ViewCardTile extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.edit, size: 18),
                   onPressed: onEdit,
-                  tooltip: 'Edit card',
+                  tooltip: l10n.deckEditEditCard,
                   constraints: const BoxConstraints(
                     minWidth: 36,
                     minHeight: 36,
@@ -254,7 +258,7 @@ class _ViewCardTile extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 18),
                   onPressed: onDelete,
-                  tooltip: 'Delete card',
+                  tooltip: l10n.deckEditDeleteCard,
                   constraints: const BoxConstraints(
                     minWidth: 36,
                     minHeight: 36,
@@ -271,7 +275,7 @@ class _ViewCardTile extends StatelessWidget {
             if (!card.isNew && card.srData != null) ...[
               const SizedBox(height: 4),
               Text(
-                'Repetitions: ${card.srData!.repetitions}',
+                l10n.deckEditRepetitions(card.srData!.repetitions),
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.outline,
                 ),
@@ -320,6 +324,7 @@ class _EditableCardTileState extends State<_EditableCardTile> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final frontChanged =
         !widget.card.isNew &&
         _frontController.text.trim() != widget.card.originalFront;
@@ -334,9 +339,9 @@ class _EditableCardTileState extends State<_EditableCardTile> {
           children: [
             TextField(
               controller: _frontController,
-              decoration: const InputDecoration(
-                labelText: 'Front (Question)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.deckEditFront,
+                border: const OutlineInputBorder(),
                 isDense: true,
               ),
               maxLines: 2,
@@ -350,7 +355,7 @@ class _EditableCardTileState extends State<_EditableCardTile> {
                       size: 14, color: Colors.orange.shade700),
                   const SizedBox(width: 4),
                   Text(
-                    'SR progress will reset (question changed)',
+                    l10n.deckEditSrResetWarning,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: Colors.orange.shade700,
                     ),
@@ -361,9 +366,9 @@ class _EditableCardTileState extends State<_EditableCardTile> {
             const SizedBox(height: 8),
             TextField(
               controller: _backController,
-              decoration: const InputDecoration(
-                labelText: 'Back (Answer)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.deckEditBack,
+                border: const OutlineInputBorder(),
                 isDense: true,
               ),
               maxLines: 2,
@@ -374,7 +379,7 @@ class _EditableCardTileState extends State<_EditableCardTile> {
               children: [
                 TextButton(
                   onPressed: widget.onCancel,
-                  child: const Text('Cancel'),
+                  child: Text(l10n.deckEditCancel),
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
@@ -385,7 +390,7 @@ class _EditableCardTileState extends State<_EditableCardTile> {
                       widget.onSave(front, back);
                     }
                   },
-                  child: const Text('Done'),
+                  child: Text(l10n.deckEditDone),
                 ),
               ],
             ),

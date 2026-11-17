@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:educards/features/progress/domain/entities/streak_info.dart';
+import 'package:educards/l10n/app_localizations.dart';
 
 class StreakCounter extends StatelessWidget {
   final StreakInfo streak;
@@ -11,10 +12,10 @@ class StreakCounter extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Semantics(
-      label: '${streak.currentStreak} day streak. '
-          'Longest streak: ${streak.longestStreak} days.',
+      label: l10n.streakSemantics(streak.currentStreak, streak.longestStreak),
       child: Card(
         color: colorScheme.primaryContainer,
         child: Padding(
@@ -34,7 +35,7 @@ class StreakCounter extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${streak.currentStreak} Day Streak',
+                      l10n.streakDays(streak.currentStreak),
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onPrimaryContainer,
@@ -42,7 +43,7 @@ class StreakCounter extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Best: ${streak.longestStreak} days',
+                      l10n.streakBest(streak.longestStreak),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onPrimaryContainer.withAlpha(179),
                       ),
@@ -55,7 +56,7 @@ class StreakCounter extends StatelessWidget {
                   Icons.check_circle,
                   color: colorScheme.primary,
                   size: 32,
-                  semanticLabel: 'Studied today',
+                  semanticLabel: l10n.streakStudiedToday,
                 ),
             ],
           ),

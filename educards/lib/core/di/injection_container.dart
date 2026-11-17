@@ -15,6 +15,7 @@ import '../../features/deck/domain/usecases/delete_deck_usecase.dart';
 import '../../features/deck/domain/usecases/get_all_decks_usecase.dart';
 import '../../features/deck/domain/usecases/get_deck_usecase.dart';
 import '../../features/deck/domain/usecases/generate_deck_usecase.dart';
+import '../../features/deck/domain/usecases/generate_from_media_usecase.dart';
 import '../../features/deck/domain/usecases/import_deck_usecase.dart';
 import '../../features/deck/domain/usecases/update_deck_usecase.dart';
 import '../../features/deck/domain/usecases/export_deck_usecase.dart';
@@ -30,6 +31,7 @@ import '../../features/study/domain/usecases/calculate_next_review_usecase.dart'
 import '../../features/study/domain/usecases/get_due_cards_usecase.dart';
 import '../../features/study/domain/usecases/get_study_queue_usecase.dart';
 import '../../features/study/domain/usecases/review_card_usecase.dart';
+import '../../features/study/presentation/bloc/listen_mode_bloc.dart';
 import '../../features/study/presentation/bloc/study_plan_bloc.dart';
 import '../../features/study/presentation/bloc/study_session_bloc.dart';
 import '../../features/progress/data/datasources/progress_local_datasource.dart';
@@ -108,6 +110,7 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => ImportDeckUseCase(sl()));
   sl.registerLazySingleton(() => AIGenerationService());
   sl.registerLazySingleton(() => GenerateDeckUseCase(sl()));
+  sl.registerLazySingleton(() => GenerateFromMediaUseCase(sl()));
   sl.registerLazySingleton(() => ExportDeckUseCase());
   sl.registerLazySingleton(() => GetDueCardsUseCase(sl()));
   sl.registerLazySingleton(() => ReviewCardUseCase(sl()));
@@ -154,6 +157,12 @@ Future<void> initDependencies() async {
     ),
   );
   sl.registerFactory(
+    () => ListenModeBloc(
+      getDeck: sl(),
+      settingsRepository: sl(),
+    ),
+  );
+  sl.registerFactory(
     () => DeckDetailBloc(
       getDeck: sl(),
       exportDeck: sl(),
@@ -170,6 +179,7 @@ Future<void> initDependencies() async {
       createDeck: sl(),
       importDeck: sl(),
       generateDeck: sl(),
+      generateFromMedia: sl(),
       settingsRepository: sl(),
     ),
   );

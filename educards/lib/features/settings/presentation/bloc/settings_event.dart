@@ -50,3 +50,12 @@ class UpdateAutoReadAloud extends SettingsEvent {
   @override
   List<Object?> get props => [enabled];
 }
+
+class UpdateLocale extends SettingsEvent {
+  /// Locale code ('en', 'ja') or null for system default.
+  final String? locale;
+  const UpdateLocale(this.locale);
+
+  @override
+  List<Object?> get props => [locale];
+}

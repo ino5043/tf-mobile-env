@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:educards/features/study/domain/entities/review_rating.dart';
+import 'package:educards/l10n/app_localizations.dart';
 
 /// Rating buttons for SM-2 difficulty feedback.
 /// Touch targets are 48x48dp minimum (Material Design 3 / WCAG).
@@ -11,31 +12,32 @@ class RatingButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _RatingButton(
-          label: 'Again',
+          label: l10n.ratingAgain,
           color: colorScheme.error,
           icon: Icons.close,
           onPressed: () => onRate(ReviewRating.again),
         ),
         _RatingButton(
-          label: 'Hard',
+          label: l10n.ratingHard,
           color: colorScheme.tertiary,
           icon: Icons.sentiment_dissatisfied,
           onPressed: () => onRate(ReviewRating.hard),
         ),
         _RatingButton(
-          label: 'Good',
+          label: l10n.ratingGood,
           color: colorScheme.primary,
           icon: Icons.sentiment_satisfied,
           onPressed: () => onRate(ReviewRating.good),
         ),
         _RatingButton(
-          label: 'Easy',
+          label: l10n.ratingEasy,
           color: colorScheme.secondary,
           icon: Icons.sentiment_very_satisfied,
           onPressed: () => onRate(ReviewRating.easy),
@@ -60,8 +62,9 @@ class _RatingButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Semantics(
-      label: 'Rate as $label',
+      label: l10n.ratingSemantics(label),
       button: true,
       child: InkWell(
         onTap: onPressed,
