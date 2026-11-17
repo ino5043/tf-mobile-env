@@ -1010,6 +1010,24 @@ abstract class AppLocalizations {
   /// **'Average accuracy'**
   String get progressAverageAccuracy;
 
+  /// No description provided for @progressMasteryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No cards yet'**
+  String get progressMasteryEmpty;
+
+  /// No description provided for @progressMasteryLegendItem.
+  ///
+  /// In en, this message translates to:
+  /// **'{label}: {count}'**
+  String progressMasteryLegendItem(String label, int count);
+
+  /// No description provided for @progressTrendEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No study data yet'**
+  String get progressTrendEmpty;
+
   /// No description provided for @progressDeckListEmpty.
   ///
   /// In en, this message translates to:

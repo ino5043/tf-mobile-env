@@ -20,7 +20,7 @@ void main() {
     await tester.pumpWidget(_wrap(RatingButtons(onRate: (_) {})));
     await tester.pumpAndSettle();
 
-    for (final label in ['もう一度', '難しい', '普通', '簡単']) {
+    for (final label in ['もう一度', '難しい', '良い', '簡単']) {
       expect(find.text(label), findsOneWidget);
     }
   });
