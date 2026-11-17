@@ -4,6 +4,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:educards/core/ai/ai_provider.dart';
 import 'package:educards/features/deck/domain/entities/card_type.dart';
 import 'package:educards/features/deck/domain/usecases/create_deck_usecase.dart';
 import 'package:educards/features/deck/domain/usecases/generate_deck_usecase.dart';
@@ -13,6 +14,7 @@ import 'package:educards/features/deck/presentation/bloc/deck_create_bloc.dart';
 import 'package:educards/features/deck/presentation/bloc/deck_create_event.dart';
 import 'package:educards/features/deck/presentation/bloc/deck_create_state.dart';
 import 'package:educards/features/settings/domain/entities/app_settings.dart';
+import 'package:educards/features/settings/domain/repositories/api_key_repository.dart';
 import 'package:educards/features/settings/domain/repositories/settings_repository.dart';
 
 class MockCreateDeckUseCase extends Mock implements CreateDeckUseCase {}
@@ -26,12 +28,15 @@ class MockGenerateFromMediaUseCase extends Mock
 
 class MockSettingsRepository extends Mock implements SettingsRepository {}
 
+class MockApiKeyRepository extends Mock implements ApiKeyRepository {}
+
 void main() {
   late MockCreateDeckUseCase mockCreateDeck;
   late MockImportDeckUseCase mockImportDeck;
   late MockGenerateDeckUseCase mockGenerateDeck;
   late MockGenerateFromMediaUseCase mockGenerateFromMedia;
   late MockSettingsRepository mockSettings;
+  late MockApiKeyRepository mockApiKeys;
 
   setUp(() {
     mockCreateDeck = MockCreateDeckUseCase();
@@ -39,18 +44,23 @@ void main() {
     mockGenerateDeck = MockGenerateDeckUseCase();
     mockGenerateFromMedia = MockGenerateFromMediaUseCase();
     mockSettings = MockSettingsRepository();
+    mockApiKeys = MockApiKeyRepository();
+    when(() => mockApiKeys.getApiKey(any())).thenAnswer((_) async => 'test-key');
   });
 
   setUpAll(() {
     registerFallbackValue(const CreateDeckParams(title: '', description: ''));
     registerFallbackValue(const ImportDeckParams());
+    registerFallbackValue(AiProvider.claude);
     registerFallbackValue(const GenerateDeckParams(
+      provider: AiProvider.claude,
       apiKey: '',
       topic: '',
       cardCount: 1,
       difficulty: 'easy',
     ));
     registerFallbackValue(const GenerateFromMediaParams(
+      provider: AiProvider.claude,
       apiKey: '',
       fileBytes: [],
       mimeType: '',
@@ -64,11 +74,12 @@ void main() {
         generateDeck: mockGenerateDeck,
         generateFromMedia: mockGenerateFromMedia,
         settingsRepository: mockSettings,
+        apiKeyRepository: mockApiKeys,
       );
 
   final testFileBytes = Uint8List.fromList([1, 2, 3, 4, 5]);
   const testSettings =
-      AppSettings(claudeApiKey: 'test-key');
+      AppSettings(aiProvider: AiProvider.openai);
 
   group('GenerateFromMedia', () {
     blocTest<DeckCreateBloc, DeckCreateState>(
@@ -113,6 +124,8 @@ void main() {
       build: () {
         when(() => mockSettings.getSettings())
             .thenAnswer((_) async => const AppSettings());
+        when(() => mockApiKeys.getApiKey(AiProvider.claude))
+            .thenAnswer((_) async => null);
         return buildBloc();
       },
       act: (bloc) => bloc.add(GenerateFromMedia(
@@ -235,6 +248,56 @@ void main() {
         expect(params.cardCount, 15);
         expect(params.cardType, CardType.cloze);
       },
+    );
+  });
+
+  group('AI provider selection', () {
+    blocTest<DeckCreateBloc, DeckCreateState>(
+      'uses the provider chosen in Settings and its own key',
+      build: () {
+        when(() => mockSettings.getSettings())
+            .thenAnswer((_) async => const AppSettings(aiProvider: AiProvider.gemini));
+        when(() => mockApiKeys.getApiKey(AiProvider.gemini))
+            .thenAnswer((_) async => 'gemini-key');
+        when(() => mockGenerateDeck(any())).thenAnswer((_) async => [
+              {'front': 'Q', 'back': 'A', 'cardType': 'basic', 'metadata': ''},
+            ]);
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const GenerateWithAI(
+        topic: 'Dart',
+        cardCount: 1,
+        difficulty: 'easy',
+      )),
+      verify: (_) {
+        final params = verify(() => mockGenerateDeck(captureAny()))
+            .captured
+            .single as GenerateDeckParams;
+        expect(params.provider, AiProvider.gemini);
+        expect(params.apiKey, 'gemini-key');
+      },
+    );
+
+    blocTest<DeckCreateBloc, DeckCreateState>(
+      'names the chosen provider when its key is missing',
+      build: () {
+        when(() => mockSettings.getSettings())
+            .thenAnswer((_) async => const AppSettings(aiProvider: AiProvider.openai));
+        when(() => mockApiKeys.getApiKey(AiProvider.openai))
+            .thenAnswer((_) async => null);
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(const GenerateWithAI(
+        topic: 'Dart',
+        cardCount: 1,
+        difficulty: 'easy',
+      )),
+      expect: () => [
+        isA<DeckCreateEditing>()
+            .having((s) => s.isGenerating, 'isGenerating', true),
+        isA<DeckCreateEditing>()
+            .having((s) => s.error, 'error', contains('ChatGPT')),
+      ],
     );
   });
 }

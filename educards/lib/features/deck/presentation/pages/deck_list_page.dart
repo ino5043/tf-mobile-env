@@ -21,6 +21,13 @@ class DeckListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('EduCards'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: l10n.settingsTitle,
+            onPressed: () => context.push('/settings'),
+          ),
+        ],
       ),
       body: BlocBuilder<DeckListBloc, DeckListState>(
         builder: (context, state) => switch (state) {

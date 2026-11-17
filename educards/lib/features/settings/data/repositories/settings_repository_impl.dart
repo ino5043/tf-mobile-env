@@ -16,8 +16,11 @@ class SettingsRepositoryImpl implements SettingsRepository {
 
   @override
   Future<void> saveSettings(AppSettings settings) async {
+    // 古い版のキー（2 番の欄）は、安全な保管場所へ移すまで残す。
+    // 消してよいのは ApiKeyRepositoryImpl.migrateLegacyKey だけ。
+    final legacyKey = localDataSource.getSettings()?.legacyClaudeApiKey;
     await localDataSource.saveSettings(
-      AppSettingsModel.fromEntity(settings),
+      AppSettingsModel.fromEntity(settings, legacyClaudeApiKey: legacyKey),
     );
   }
 }

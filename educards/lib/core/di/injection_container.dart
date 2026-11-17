@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -5,6 +6,7 @@ import '../../features/audio/data/tts_service_impl.dart';
 import '../../features/audio/domain/tts_service.dart';
 import '../../features/deck/data/datasources/deck_local_datasource.dart';
 import '../../features/deck/data/services/ai_generation_service.dart';
+import '../../features/deck/domain/services/card_generator.dart';
 import '../../features/deck/data/services/deck_import_service.dart';
 import '../../features/deck/data/models/deck_model.dart';
 import '../../features/deck/data/models/flashcard_model.dart';
@@ -43,6 +45,9 @@ import '../../features/progress/domain/usecases/get_deck_progress_usecase.dart';
 import '../../features/progress/domain/usecases/get_progress_trend_usecase.dart';
 import '../../features/progress/domain/usecases/get_streak_usecase.dart';
 import '../../features/progress/presentation/bloc/progress_bloc.dart';
+import '../../features/settings/data/datasources/secret_store.dart';
+import '../../features/settings/data/repositories/api_key_repository_impl.dart';
+import '../../features/settings/domain/repositories/api_key_repository.dart';
 import '../../features/settings/data/datasources/settings_local_datasource.dart';
 import '../../features/settings/data/models/app_settings_model.dart';
 import '../../features/settings/data/repositories/settings_repository_impl.dart';
@@ -89,6 +94,21 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<SettingsRepository>(
     () => SettingsRepositoryImpl(sl()),
   );
+
+  // API キーは通常の設定（暗号化なし）とは別の、端末の安全な保管場所に置く。
+  // 以前の版で設定に入っていたキーは、ここで一度だけ移してから消す。
+  final apiKeyRepository =
+      ApiKeyRepositoryImpl(SecureStorageSecretStore(), sl());
+  try {
+    await apiKeyRepository.migrateLegacyKey();
+    // Hive は追記型で、消した値がファイルに残るため、詰め直して消し切る
+    await settingsBox.compact();
+  } catch (e) {
+    // 移せなくてもアプリは起動させる（次の起動でもう一度試す）。
+    // キーの値はログに出さない。
+    debugPrint('API key migration failed: ${e.runtimeType}');
+  }
+  sl.registerSingleton<ApiKeyRepository>(apiKeyRepository);
   sl.registerLazySingleton<ProgressRepository>(
     () => ProgressRepositoryImpl(sl(), sl()),
   );
@@ -108,7 +128,7 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => DeleteDeckUseCase(sl()));
   sl.registerLazySingleton(() => DeckImportService());
   sl.registerLazySingleton(() => ImportDeckUseCase(sl()));
-  sl.registerLazySingleton(() => AIGenerationService());
+  sl.registerLazySingleton<CardGenerator>(() => AIGenerationService());
   sl.registerLazySingleton(() => GenerateDeckUseCase(sl()));
   sl.registerLazySingleton(() => GenerateFromMediaUseCase(sl()));
   sl.registerLazySingleton(() => ExportDeckUseCase());
@@ -154,6 +174,7 @@ Future<void> initDependencies() async {
   sl.registerFactory(
     () => SettingsBloc(
       settingsRepository: sl(),
+      apiKeyRepository: sl(),
     ),
   );
   sl.registerFactory(
@@ -181,6 +202,7 @@ Future<void> initDependencies() async {
       generateDeck: sl(),
       generateFromMedia: sl(),
       settingsRepository: sl(),
+      apiKeyRepository: sl(),
     ),
   );
 }

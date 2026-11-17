@@ -152,7 +152,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deckCreateChooseFile => 'Choose File';
 
   @override
-  String get deckCreateAITitle => 'Generate with Claude AI';
+  String get deckCreateAITitle => 'Generate with AI';
 
   @override
   String get deckCreateAISource => 'Source';
@@ -197,11 +197,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deckCreateAIGeneratingText =>
-      'Claude AI is generating your flashcards...\nThis may take a few seconds.';
+      'AI is generating your flashcards...\nThis may take a few seconds.';
 
   @override
   String get deckCreateAIGeneratingMedia =>
-      'Claude AI is analyzing your file and generating flashcards...\nThis may take longer for large files.';
+      'AI is analyzing your file and generating flashcards...\nThis may take longer for large files.';
 
   @override
   String get deckEditTitle => 'Edit Deck';
@@ -561,10 +561,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAIGeneration => 'AI Generation';
 
   @override
-  String get settingsClaudeApiKey => 'Claude API Key';
+  String get settingsAiProvider => 'AI to use';
 
   @override
-  String get settingsClaudeApiKeyHint => 'sk-ant-...';
+  String settingsApiKeyLabel(String provider) {
+    return '$provider API key';
+  }
+
+  @override
+  String get settingsApiKeyHintSaved => 'Saved (enter only to change it)';
+
+  @override
+  String get settingsApiKeyHintEmpty => 'Not set yet';
+
+  @override
+  String settingsApiKeyHelp(String url) {
+    return 'Create a key at $url. The key is stored encrypted on this device and is sent only to the AI company you chose.';
+  }
+
+  @override
+  String get settingsApiKeyShow => 'Show key';
+
+  @override
+  String get settingsApiKeyHide => 'Hide key';
+
+  @override
+  String get settingsApiKeySave => 'Save key';
+
+  @override
+  String get settingsApiKeyDelete => 'Remove key';
+
+  @override
+  String settingsApiKeySavedMessage(String provider) {
+    return '$provider API key saved';
+  }
+
+  @override
+  String settingsApiKeyDeletedMessage(String provider) {
+    return '$provider API key removed';
+  }
+
+  @override
+  String settingsApiKeySaveFailedMessage(String provider) {
+    return 'Could not save the $provider API key. Please try again.';
+  }
+
+  @override
+  String get settingsApiKeyGeminiNote =>
+      'On Gemini\'s free tier, what you send may be used to improve Google\'s services. Do not send material that contains personal information.';
 
   @override
   String get settingsTts => 'Text-to-Speech';
