@@ -63,11 +63,12 @@ void main() {
       // Should use mediaMaxTokens
       expect(body['max_tokens'], ApiConfig.mediaMaxTokens);
 
-      // Should NOT have anthropic-beta header for images
-      expect(capturedHeaders!.containsKey('anthropic-beta'), isFalse);
+      // 画像でも PDF の beta ヘッダーは付けない（付くのは拒否時の切り替え用だけ）
+      expect(capturedHeaders!['anthropic-beta'], ApiConfig.fallbackBetaHeader);
     });
 
-    test('sends document content block with beta header for PDF', () async {
+    test('sends document content block for PDF without the old PDF beta header',
+        () async {
       String? capturedBody;
       Map<String, String>? capturedHeaders;
 
@@ -95,8 +96,9 @@ void main() {
       expect(content[0]['type'], 'document');
       expect(content[0]['source']['media_type'], 'application/pdf');
 
-      // Should have anthropic-beta header for PDF
-      expect(capturedHeaders!['anthropic-beta'], ApiConfig.pdfBetaHeader);
+      // PDF の読み込みは正式機能になったため、pdfs-2024-09-25 は送らない
+      expect(capturedHeaders!['anthropic-beta'], ApiConfig.fallbackBetaHeader);
+      expect(capturedHeaders!['anthropic-beta'], isNot(contains('pdfs-')));
     });
 
     test('throws on empty API key', () async {
@@ -271,6 +273,98 @@ void main() {
       for (final headers in captured) {
         expect(headers['anthropic-dangerous-direct-browser-access'], 'true');
       }
+    });
+  });
+
+  group('AIGenerationService on claude-sonnet-5-5', () {
+    Future<Map<String, dynamic>> captureBody(
+        Future<void> Function(AIGenerationService) call) async {
+      String? captured;
+      final client = MockClient((request) async {
+        captured = request.body;
+        return buildClaudeResponse([
+          {'front': 'Q', 'back': 'A'},
+        ]);
+      });
+      await call(AIGenerationService(client: client));
+      return jsonDecode(captured!) as Map<String, dynamic>;
+    }
+
+    test('uses the current model, low effort and server-side fallbacks',
+        () async {
+      for (final body in [
+        await captureBody((s) => s.generateFlashcards(
+            apiKey: testApiKey, topic: 'Dart', cardCount: 1, difficulty: 'easy')),
+        await captureBody((s) => s.generateFromMedia(
+            apiKey: testApiKey,
+            fileBytes: [1, 2, 3],
+            mimeType: 'image/png',
+            cardCount: 1)),
+      ]) {
+        expect(body['model'], 'claude-sonnet-5-5');
+        expect(body['output_config'], {'effort': 'low'});
+        expect(body['fallbacks'], 'default');
+        expect(body['max_tokens'], greaterThanOrEqualTo(16000));
+      }
+    });
+
+    test('reads the text block even when a thinking block comes first',
+        () async {
+      final client = MockClient((request) async => http.Response(
+            jsonEncode({
+              'stop_reason': 'end_turn',
+              'content': [
+                {'type': 'thinking', 'thinking': '', 'signature': 'sig'},
+                {
+                  'type': 'text',
+                  'text': jsonEncode([
+                    {'front': 'Q1', 'back': 'A1'}
+                  ]),
+                },
+              ],
+            }),
+            200,
+          ));
+      final result = await AIGenerationService(client: client)
+          .generateFlashcards(
+              apiKey: testApiKey, topic: 'Dart', cardCount: 1, difficulty: 'easy');
+
+      expect(result, hasLength(1));
+      expect(result[0]['front'], 'Q1');
+    });
+
+    test('explains a refusal instead of failing on a missing text block',
+        () async {
+      final client = MockClient((request) async => http.Response(
+            jsonEncode({'stop_reason': 'refusal', 'content': []}),
+            200,
+          ));
+
+      await expectLater(
+        AIGenerationService(client: client).generateFlashcards(
+            apiKey: testApiKey, topic: 'Dart', cardCount: 1, difficulty: 'easy'),
+        throwsA(isA<Exception>()
+            .having((e) => e.toString(), 'message', contains('declined'))),
+      );
+    });
+
+    test('reports a truncated response when max_tokens is reached', () async {
+      final client = MockClient((request) async => http.Response(
+            jsonEncode({
+              'stop_reason': 'max_tokens',
+              'content': [
+                {'type': 'text', 'text': '[{"front": "Q1", "ba'}
+              ],
+            }),
+            200,
+          ));
+
+      await expectLater(
+        AIGenerationService(client: client).generateFlashcards(
+            apiKey: testApiKey, topic: 'Dart', cardCount: 1, difficulty: 'easy'),
+        throwsA(isA<Exception>()
+            .having((e) => e.toString(), 'message', contains('cut off'))),
+      );
     });
   });
 }

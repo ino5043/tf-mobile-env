@@ -14,12 +14,13 @@ class AIGenerationService {
       : _client = client ?? http.Client(),
         _timeout = timeout ?? ApiConfig.requestTimeout;
 
-  /// Messages API を呼ぶ共通処理。時間切れと、ブラウザから直接呼ぶときに
-  /// 必要なヘッダーをここでまとめて扱う。
-  Future<http.Response> _postMessages(
-    String apiKey,
-    Map<String, dynamic> body, {
-    Map<String, String> extraHeaders = const {},
+  /// Messages API を呼び、返答の本文（text ブロック）を返す共通処理。
+  /// 時間切れ、ブラウザから直接呼ぶときのヘッダー、拒否時の切り替え、
+  /// 返答の読み取り（拒否・途中切れ・thinking ブロック）をここでまとめて扱う。
+  Future<String> _requestCardsText(
+    String apiKey, {
+    required Object userContent,
+    required int maxTokens,
   }) async {
     final headers = <String, String>{
       'Content-Type': 'application/json',
@@ -28,10 +29,23 @@ class AIGenerationService {
       // Web 版はブラウザから API を直接呼ぶため、このヘッダーが無いと CORS で拒否される。
       // API キーは利用者が設定画面で入れた本人のキーで、端末の外には出さない。
       'anthropic-dangerous-direct-browser-access': 'true',
-      ...extraHeaders,
+      // 安全上の理由で断られたとき、API 側で別のモデルに切り替えて続けてもらう
+      'anthropic-beta': ApiConfig.fallbackBetaHeader,
     };
+    final body = {
+      'model': ApiConfig.claudeModel,
+      'max_tokens': maxTokens,
+      // カード作りは定型の仕事なので、考える量を抑えて速さと費用を優先する
+      'output_config': {'effort': ApiConfig.effort},
+      'fallbacks': 'default',
+      'messages': [
+        {'role': 'user', 'content': userContent}
+      ],
+    };
+
+    final http.Response response;
     try {
-      return await _client
+      response = await _client
           .post(
             Uri.parse(ApiConfig.claudeApiUrl),
             headers: headers,
@@ -42,6 +56,37 @@ class AIGenerationService {
       throw Exception('Claude API request timed out after '
           '${_timeout.inSeconds}s. Please check your connection and try again.');
     }
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          'Claude API error (${response.statusCode}): ${response.body}');
+    }
+    return _extractText(jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
+  /// 返答から本文を取り出す。新しいモデルでは先頭に thinking ブロックが来ることが
+  /// あるため、位置ではなく種類で text ブロックを探す。
+  String _extractText(Map<String, dynamic> responseBody) {
+    final stopReason = responseBody['stop_reason'];
+    if (stopReason == 'refusal') {
+      throw Exception('Claude declined to generate cards for this content. '
+          'Please try a different topic or file.');
+    }
+    if (stopReason == 'max_tokens') {
+      throw Exception('The response was cut off before all cards were written. '
+          'Please try again with fewer cards.');
+    }
+
+    final content = (responseBody['content'] as List?) ?? const [];
+    final textBlocks = content
+        .whereType<Map<String, dynamic>>()
+        .where((b) => b['type'] == 'text' && b['text'] is String)
+        .map((b) => b['text'] as String)
+        .toList();
+    if (textBlocks.isEmpty) {
+      throw Exception('Empty response from Claude API');
+    }
+    return textBlocks.join();
   }
 
   Future<List<Map<String, dynamic>>> generateFlashcards({
@@ -58,26 +103,11 @@ class AIGenerationService {
 
     final prompt = _buildPrompt(topic, cardCount, difficulty, cardType);
 
-    final response = await _postMessages(apiKey, {
-      'model': ApiConfig.claudeModel,
-      'max_tokens': ApiConfig.maxTokens,
-      'messages': [
-        {'role': 'user', 'content': prompt}
-      ],
-    });
-
-    if (response.statusCode != 200) {
-      throw Exception(
-          'Claude API error (${response.statusCode}): ${response.body}');
-    }
-
-    final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
-    final content = responseBody['content'] as List;
-    if (content.isEmpty) {
-      throw Exception('Empty response from Claude API');
-    }
-
-    final text = content[0]['text'] as String;
+    final text = await _requestCardsText(
+      apiKey,
+      userContent: prompt,
+      maxTokens: ApiConfig.maxTokens,
+    );
     return _parseResponse(text, cardType);
   }
 
@@ -163,38 +193,14 @@ Example: [{"front":"Solve: 2x + 6 = 14","back":"x = 4","hints":["Isolate the var
 
     final prompt = _buildMediaPrompt(cardCount, cardType);
 
-    final response = await _postMessages(
+    final text = await _requestCardsText(
       apiKey,
-      {
-        'model': ApiConfig.claudeModel,
-        'max_tokens': ApiConfig.mediaMaxTokens,
-        'messages': [
-          {
-            'role': 'user',
-            'content': [
-              mediaBlock,
-              {'type': 'text', 'text': prompt},
-            ],
-          }
-        ],
-      },
-      extraHeaders: {
-        if (isPdf) 'anthropic-beta': ApiConfig.pdfBetaHeader,
-      },
+      userContent: [
+        mediaBlock,
+        {'type': 'text', 'text': prompt},
+      ],
+      maxTokens: ApiConfig.mediaMaxTokens,
     );
-
-    if (response.statusCode != 200) {
-      throw Exception(
-          'Claude API error (${response.statusCode}): ${response.body}');
-    }
-
-    final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
-    final content = responseBody['content'] as List;
-    if (content.isEmpty) {
-      throw Exception('Empty response from Claude API');
-    }
-
-    final text = content[0]['text'] as String;
     return _parseResponse(text, cardType);
   }
 
