@@ -1,0 +1,71 @@
+name: EduCards CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'educards/**'
+      - '.github/workflows/educards-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'educards/**'
+      - '.github/workflows/educards-ci.yml'
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: educards
+
+jobs:
+  analyze-and-test:
+    name: Analyze & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze project source
+        run: flutter analyze --no-fatal-infos
+
+      - name: Run tests
+        run: |
+          mkdir -p test-results
+          flutter test --coverage --file-reporter json:test-results/results.json
+
+      - name: Upload test evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: educards-test-evidence-${{ github.sha }}
+          path: |
+            educards/test-results/
+            educards/coverage/
+          retention-days: 90
+        if: always()
+
+  build-web:
+    name: Build Web
+    runs-on: ubuntu-latest
+    needs: analyze-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Web
+        run: flutter build web --release --base-href "/tf-mobile-env/"
