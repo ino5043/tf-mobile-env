@@ -17,3 +17,6 @@ local.properties
 *.log
 .env
 .env.local
+
+# Generated documents (md is the source; same as tf-standard-env)
+*.pdf
