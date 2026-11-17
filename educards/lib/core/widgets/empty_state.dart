@@ -27,7 +27,7 @@ class EmptyState extends StatelessWidget {
             Icon(
               icon,
               size: 64,
-              color: theme.colorScheme.outline,
+              color: theme.colorScheme.onSurfaceVariant,
               semanticLabel: title,
             ),
             const SizedBox(height: 16),
@@ -41,7 +41,7 @@ class EmptyState extends StatelessWidget {
               Text(
                 subtitle!,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.outline,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),

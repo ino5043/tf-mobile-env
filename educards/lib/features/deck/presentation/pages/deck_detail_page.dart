@@ -4,7 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:educards/l10n/app_localizations.dart';
+import 'package:educards/core/theme/app_tokens.dart';
 import 'package:educards/features/study/domain/entities/spaced_repetition_data.dart';
+import 'package:educards/features/study/presentation/widgets/mastery_colors.dart';
 import '../bloc/deck_detail_bloc.dart';
 import '../bloc/deck_detail_event.dart';
 import '../bloc/deck_detail_state.dart';
@@ -88,16 +90,17 @@ class DeckDetailPage extends StatelessWidget {
                   icon: Icons.schedule,
                   label: l10n.deckDetailDue,
                   value: '${deck.dueCards}',
+                  // 期限のカードはエラーではないので、赤ではなく強調の色にする（4-4）
                   color: deck.dueCards > 0
-                      ? colorScheme.error
-                      : colorScheme.outline,
+                      ? AppColors.of(context).highlight
+                      : colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 12),
                 _StatCard(
                   icon: Icons.trending_up,
                   label: l10n.deckDetailMastery,
                   value: '${(deck.masteryPercentage * 100).round()}%',
-                  color: Colors.green,
+                  color: AppColors.of(context).masteryMastered,
                 ),
               ],
             ),
@@ -162,7 +165,7 @@ class DeckDetailPage extends StatelessWidget {
           child: SingleChildScrollView(
             child: SelectableText(
               json,
-              style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
             ),
           ),
         ),
@@ -234,7 +237,8 @@ class _FlashcardTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final masteryColor = _masteryColor(card.srData.mastery);
+    final masteryColor =
+        AppColors.of(context).forMastery(card.srData.mastery);
     final masteryLabel = _masteryLabel(context, card.srData.mastery);
 
     return Card(
@@ -275,7 +279,7 @@ class _FlashcardTile extends StatelessWidget {
             Text(
               card.back,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.outline,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -284,14 +288,6 @@ class _FlashcardTile extends StatelessWidget {
     );
   }
 
-  Color _masteryColor(MasteryLevel level) {
-    return switch (level) {
-      MasteryLevel.newCard => Colors.grey,
-      MasteryLevel.learning => Colors.orange,
-      MasteryLevel.review => Colors.blue,
-      MasteryLevel.mastered => Colors.green,
-    };
-  }
 
   String _masteryLabel(BuildContext context, MasteryLevel level) {
     final l10n = AppLocalizations.of(context);
