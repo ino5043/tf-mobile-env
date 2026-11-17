@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- 外部のスクリプト・画像・書体は読み込まない。このページ自身の CSS だけを使う -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>EduCards を Android に入れる</title>
+  <meta name="description" content="暗記カードのアプリ EduCards（Android 版）の入れ方と、安全に使うための注意。">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header>
+    <p class="small"><a href="./">EduCards</a> ＞ Android に入れる</p>
+    <h1>EduCards を Android に入れる</h1>
+    <p class="lead">暗記カードのアプリ EduCards の Android 版です。Google Play を通さずに配っているため、入れるときに少しだけ手順が増えます。</p>
+  </header>
+
+  <div class="card">
+    <h2 class="first">ダウンロード</h2>
+    <p><a class="button" href="https://github.com/ino5043/tf-mobile-env/releases/latest/download/EduCards-arm64-v8a.apk">最新版をダウンロード（約 20 MB）</a></p>
+    <p class="small">ほとんどのスマホはこのファイルで動きます。古いスマホ用のファイルや、これまでの版は <a href="https://github.com/ino5043/tf-mobile-env/releases?q=educards">リリースの一覧</a> にあります。</p>
+    <p class="small">必要なもの: Android 7.0 以降のスマホかタブレット。</p>
+  </div>
+
+  <div class="note">
+    <strong>このページか、上のリリースの一覧からだけダウンロードしてください。</strong>
+    ほかの人から送られてきた EduCards の APK ファイルは入れないでください。中身が書き換えられていても見分けられません。
+  </div>
+
+  <h2>入れ方</h2>
+  <ol>
+    <li>スマホの Chrome でこのページを開き、<strong>「最新版をダウンロード」</strong>を押します。</li>
+    <li>「このファイルは有害な可能性があります」と出たら、<strong>「ダウンロード」</strong>を押します。APK ファイルにはいつも出る表示です。</li>
+    <li>ダウンロードが終わったら、通知か Chrome の「ダウンロード」から <code>EduCards-arm64-v8a.apk</code> を開きます。</li>
+    <li>「この提供元のアプリを許可」の画面が出たら、<strong>許可を入れて</strong>から戻ります。</li>
+    <li><strong>「インストール」</strong>を押します。</li>
+    <li>「Play プロテクト」の確認が出たら、<strong>「詳細」→「インストールする」</strong>を選びます。Google Play を通していないアプリにはいつも出る確認です。</li>
+    <li>入ったら、手順 4 で入れた<strong>「この提供元のアプリを許可」を切っておきます</strong>（設定 → アプリ → Chrome → 不明なアプリのインストール）。ほかのアプリが勝手に入るのを防げます。</li>
+  </ol>
+
+  <h2>ファイルが本物か確かめる（任意）</h2>
+  <p>念のため確かめたいときは、次の 2 つを見比べます。</p>
+  <ul>
+    <li><strong>ファイルの指紋（SHA-256）:</strong> リリースのページにある <code>SHA256SUMS.txt</code> の値と、ダウンロードしたファイルの値が同じか。パソコンなら Windows は <code>certutil -hashfile ファイル名 SHA256</code>、Mac は <code>shasum -a 256 ファイル名</code> で出せます。</li>
+    <li><strong>署名の証明書:</strong> どの版も同じ証明書で署名しています。証明書の SHA-256 は、リリースのページの説明と <code>signing-certificate.txt</code> に載せています。違う証明書の APK は、本物ではありません。</li>
+  </ul>
+  <p class="small">APK は GitHub の上で、公開しているコードから自動で作っています。どのコードから作ったかの証明（ビルドの出どころの証明）も GitHub に残しています。</p>
+
+  <h2>AI でカードを作るには</h2>
+  <p>カードを手で作る・学ぶ・進み具合を見るのは、AI がなくても使えます。テーマや画像、PDF からカードを作るときだけ、AI の会社の <strong>API キー</strong>が必要です。</p>
+  <table>
+    <thead><tr><th>AI</th><th>キーを作るページ</th><th>メモ</th></tr></thead>
+    <tbody>
+      <tr><td>Claude</td><td><a href="https://console.anthropic.com/settings/keys">console.anthropic.com</a></td><td>使った分だけ料金がかかります</td></tr>
+      <tr><td>ChatGPT</td><td><a href="https://platform.openai.com/api-keys">platform.openai.com</a></td><td>ChatGPT の月額プラン（Plus など）とは別で、使った分だけ料金がかかります</td></tr>
+      <tr><td>Gemini</td><td><a href="https://aistudio.google.com/apikey">aistudio.google.com</a></td><td>無料の枠があります。無料の枠では、送った内容が Google のサービスの改善に使われることがあります</td></tr>
+    </tbody>
+  </table>
+  <ol>
+    <li>アプリの<strong>「設定」</strong>を開き、<strong>「使うAI」</strong>を選びます。</li>
+    <li>その AI の API キーを貼り付けて、保存のボタンを押します。</li>
+  </ol>
+  <div class="note">
+    <strong>API キーはお金に結びつく大事な情報です。</strong>
+    人に送ったり、画面の写真を共有したりしないでください。キーはスマホの中に暗号化して保存し、選んだ AI の会社にだけ送ります。EduCards の作者を含め、ほかのところには送りません。
+    料金が心配なときは、AI の会社のページで<strong>使える金額の上限</strong>を決めておくと安心です。
+  </div>
+
+  <h2>知っておいてほしいこと</h2>
+  <ul>
+    <li><strong>データはスマホの中だけにあります。</strong> 作ったカードや学習の記録は、どこにも送りません（AI でカードを作るときに、テーマや選んだファイルを AI の会社に送るのを除く）。</li>
+    <li><strong>バックアップには入りません。</strong> 安全のため、スマホのバックアップや機種変更の引き継ぎからは外しています。機種変更やアプリを消す前に、デッキの画面の<strong>「デッキをエクスポート」</strong>でカードを書き出しておいてください。</li>
+    <li><strong>アプリが使う許可はインターネットだけです。</strong> 連絡先や写真の一覧などを勝手に読むことはありません。画像や PDF は、あなたが選んだファイルだけを読みます。</li>
+  </ul>
+
+  <h2>新しい版に更新する・消す</h2>
+  <ul>
+    <li><strong>更新:</strong> このページから新しい版をダウンロードして、同じ手順で入れます。上書きされ、カードや設定はそのまま残ります。</li>
+    <li><strong>消す:</strong> アプリのアイコンを長押しして「アンインストール」を選びます。カードと API キーも一緒に消えます。</li>
+  </ul>
+
+  <h2>困ったとき</h2>
+  <ul>
+    <li>「アプリはインストールされていません」と出る: 前に別の方法で入れた EduCards が残っていると出ます。一度消してから入れ直してください（先に「デッキをエクスポート」でカードを書き出してください）。</li>
+    <li>AI でカードが作れない: 設定で選んだ AI と、保存したキーの会社が合っているか、キーの残高や上限を確かめてください。</li>
+    <li>そのほか: <a href="https://github.com/ino5043/tf-mobile-env/issues">GitHub の Issues</a> で知らせてください。API キーは書かないでください。</li>
+  </ul>
+
+  <footer>
+    <p>iPhone 版はまだありません。</p>
+  </footer>
+</main>
+</body>
+</html>

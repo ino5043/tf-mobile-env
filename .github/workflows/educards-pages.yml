@@ -1,0 +1,69 @@
+name: EduCards Pages
+
+# 案内のページ（educards/site）を GitHub Pages に公開する。
+#   https://<owner>.github.io/tf-mobile-env/          はじめのページ
+#   https://<owner>.github.io/tf-mobile-env/android.html  Android に入れる方法
+# Web 版のアプリも置くときは、手動で起動して include_web_app を true にする（/app/ に置く）。
+# Pages を有効にするまでは手動で起動したときだけ動かす。有効にしたら push を足す。
+on:
+  workflow_dispatch:
+    inputs:
+      include_web_app:
+        description: 'Web 版のアプリも /app/ に置く'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy the guide pages
+        run: |
+          mkdir -p _site
+          cp educards/site/*.html educards/site/*.css _site/
+
+      - name: Setup Flutter
+        if: ${{ inputs.include_web_app }}
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.50.0'
+
+      - name: Build the web app
+        if: ${{ inputs.include_web_app }}
+        working-directory: educards
+        run: |
+          flutter pub get
+          flutter build web --release --base-href "/tf-mobile-env/app/"
+          cp -r build/web ../_site/app
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
