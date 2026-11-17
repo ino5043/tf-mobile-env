@@ -207,4 +207,70 @@ void main() {
       expect(result[0]['front'], 'What is Dart?');
     });
   });
+
+  group('AIGenerationService request safety', () {
+    test('fails with a timeout error instead of waiting forever', () async {
+      final slowClient = MockClient((request) async {
+        await Future.delayed(const Duration(milliseconds: 300));
+        return buildClaudeResponse([
+          {'front': 'Q', 'back': 'A'},
+        ]);
+      });
+      final service = AIGenerationService(
+        client: slowClient,
+        timeout: const Duration(milliseconds: 50),
+      );
+
+      await expectLater(
+        service.generateFlashcards(
+          apiKey: testApiKey,
+          topic: 'Dart',
+          cardCount: 1,
+          difficulty: 'easy',
+        ),
+        throwsA(isA<Exception>().having(
+            (e) => e.toString(), 'message', contains('timed out'))),
+      );
+      await expectLater(
+        service.generateFromMedia(
+          apiKey: testApiKey,
+          fileBytes: [1, 2, 3],
+          mimeType: 'image/png',
+          cardCount: 1,
+        ),
+        throwsA(isA<Exception>().having(
+            (e) => e.toString(), 'message', contains('timed out'))),
+      );
+    });
+
+    test('sends the header required for calls from a browser (web build)',
+        () async {
+      final captured = <Map<String, String>>[];
+      final mockClient = MockClient((request) async {
+        captured.add(request.headers);
+        return buildClaudeResponse([
+          {'front': 'Q', 'back': 'A'},
+        ]);
+      });
+      final service = AIGenerationService(client: mockClient);
+
+      await service.generateFlashcards(
+        apiKey: testApiKey,
+        topic: 'Dart',
+        cardCount: 1,
+        difficulty: 'easy',
+      );
+      await service.generateFromMedia(
+        apiKey: testApiKey,
+        fileBytes: [1, 2, 3],
+        mimeType: 'image/png',
+        cardCount: 1,
+      );
+
+      expect(captured, hasLength(2));
+      for (final headers in captured) {
+        expect(headers['anthropic-dangerous-direct-browser-access'], 'true');
+      }
+    });
+  });
 }

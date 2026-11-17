@@ -91,5 +91,56 @@ void main() {
         isA<CardPresented>().having((s) => s.isFlipped, 'isFlipped', true),
       ],
     );
+
+    blocTest<StudySessionBloc, StudySessionState>(
+      'reviews the card only once when RateCard is dispatched twice in a row',
+      build: () {
+        when(() => mockGetDueCards(any())).thenAnswer((_) async => testCards);
+        when(() => mockReviewCard(any())).thenAnswer((_) async {
+          await Future.delayed(const Duration(milliseconds: 50));
+          return testCards[0];
+        });
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(const StartStudySession('deck-1'));
+        await Future.delayed(const Duration(milliseconds: 100));
+        bloc.add(const RateCard(ReviewRating.good));
+        bloc.add(const RateCard(ReviewRating.good));
+        await Future.delayed(const Duration(milliseconds: 200));
+      },
+      skip: 2,
+      expect: () => [
+        isA<CardPresented>()
+            .having((s) => s.currentIndex, 'currentIndex', 1)
+            .having((s) => s.card.id, 'card.id', 'card-2'),
+      ],
+      verify: (_) {
+        verify(() => mockReviewCard(any())).called(1);
+      },
+    );
+
+    blocTest<StudySessionBloc, StudySessionState>(
+      'ignores RateCard after the session is complete',
+      build: () {
+        when(() => mockGetDueCards(any()))
+            .thenAnswer((_) async => [testCards[0]]);
+        when(() => mockReviewCard(any())).thenAnswer((_) async => testCards[0]);
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(const StartStudySession('deck-1'));
+        await Future.delayed(const Duration(milliseconds: 100));
+        bloc.add(const RateCard(ReviewRating.good));
+        await Future.delayed(const Duration(milliseconds: 100));
+        bloc.add(const RateCard(ReviewRating.good));
+        await Future.delayed(const Duration(milliseconds: 100));
+      },
+      skip: 2,
+      expect: () => [isA<StudySessionComplete>()],
+      verify: (_) {
+        verify(() => mockReviewCard(any())).called(1);
+      },
+    );
   });
 }
