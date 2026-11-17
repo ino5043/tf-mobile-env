@@ -195,6 +195,8 @@
   "settingsApiKeyDelete": "キーを消す",
   "settingsApiKeySavedMessage": "{provider}のAPIキーを保存しました",
   "settingsApiKeyDeletedMessage": "{provider}のAPIキーを消しました",
+  "settingsApiKeySaveFailedMessage": "{provider}のAPIキーを保存できませんでした。もう一度試してください",
+  "settingsApiKeyGeminiNote": "Geminiの無料の枠では、送った内容がGoogleのサービスの改善に使われることがあります。個人の情報を含む資料は送らないでください。",
   "settingsTts": "テキスト読み上げ",
   "settingsSpeechSpeed": "読み上げ速度",
   "settingsAutoReadAloud": "自動読み上げ",

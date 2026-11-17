@@ -17,7 +17,15 @@ class SettingsPage extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsTitle)),
-      body: BlocBuilder<SettingsBloc, SettingsState>(
+      body: BlocConsumer<SettingsBloc, SettingsState>(
+        // キーの保存の結果は、保存が終わってから知らせる（失敗も含めて）
+        listenWhen: (previous, current) =>
+            current is SettingsLoaded &&
+            current.keyNotice != null &&
+            (previous is! SettingsLoaded ||
+                previous.keyNotice != current.keyNotice),
+        listener: (context, state) =>
+            _showKeyNotice(context, l10n, (state as SettingsLoaded).keyNotice!),
         builder: (context, state) => switch (state) {
           SettingsInitial() || SettingsLoading() => const LoadingIndicator(),
           SettingsError(:final message) => Center(child: Text(message)),
@@ -26,6 +34,22 @@ class SettingsPage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  void _showKeyNotice(
+    BuildContext context,
+    AppLocalizations l10n,
+    KeySaveNotice notice,
+  ) {
+    final name = notice.provider.displayName;
+    final message = switch (notice.result) {
+      KeySaveResult.saved => l10n.settingsApiKeySavedMessage(name),
+      KeySaveResult.deleted => l10n.settingsApiKeyDeletedMessage(name),
+      KeySaveResult.failed => l10n.settingsApiKeySaveFailedMessage(name),
+    };
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   Widget _buildSettingsList(
@@ -223,13 +247,10 @@ class _ApiKeyFieldState extends State<_ApiKeyField> {
     super.dispose();
   }
 
-  void _save(String value, String message) {
+  void _save(String value) {
     widget.onSaved(value);
     _controller.clear();
     setState(() => _obscured = true);
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -246,9 +267,7 @@ class _ApiKeyFieldState extends State<_ApiKeyField> {
           enableSuggestions: false,
           keyboardType: TextInputType.visiblePassword,
           onSubmitted: (value) {
-            if (value.trim().isNotEmpty) {
-              _save(value.trim(), l10n.settingsApiKeySavedMessage(name));
-            }
+            if (value.trim().isNotEmpty) _save(value.trim());
           },
           decoration: InputDecoration(
             labelText: l10n.settingsApiKeyLabel(name),
@@ -273,7 +292,7 @@ class _ApiKeyFieldState extends State<_ApiKeyField> {
                   onPressed: () {
                     final value = _controller.text.trim();
                     if (value.isEmpty) return;
-                    _save(value, l10n.settingsApiKeySavedMessage(name));
+                    _save(value);
                   },
                 ),
               ],
@@ -285,14 +304,20 @@ class _ApiKeyFieldState extends State<_ApiKeyField> {
           l10n.settingsApiKeyHelp(widget.provider.apiKeyPageUrl),
           style: Theme.of(context).textTheme.bodySmall,
         ),
+        if (widget.provider == AiProvider.gemini) ...[
+          const SizedBox(height: 4),
+          Text(
+            l10n.settingsApiKeyGeminiNote,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
         if (widget.isSaved)
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
               icon: const Icon(Icons.delete_outline),
               label: Text(l10n.settingsApiKeyDelete),
-              onPressed: () =>
-                  _save('', l10n.settingsApiKeyDeletedMessage(name)),
+              onPressed: () => _save(''),
             ),
           ),
       ],

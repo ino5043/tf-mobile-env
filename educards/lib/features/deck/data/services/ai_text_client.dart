@@ -78,9 +78,16 @@ Future<Map<String, dynamic>> postJson({
   return decoded;
 }
 
+/// API キーに見える文字列（sk-…、sk-ant-…、AIza…）。会社のエラーの文に
+/// キーの一部が入ることがあるため、画面に出す前に伏せる。
+final _keyLike = RegExp(r'(sk-[A-Za-z0-9_\-]{8,}|AIza[A-Za-z0-9_\-]{8,})');
+
 /// 返答の本文は長いことがあるため、画面に出す分だけに切り詰める。
 String _shorten(String body) {
-  final oneLine = body.replaceAll(RegExp(r'\s+'), ' ').trim();
+  final oneLine = body
+      .replaceAll(_keyLike, '[hidden]')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
   if (oneLine.length <= ApiConfig.maxErrorBodyChars) return oneLine;
   return '${oneLine.substring(0, ApiConfig.maxErrorBodyChars)}...';
 }

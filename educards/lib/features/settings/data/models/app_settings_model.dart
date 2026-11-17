@@ -28,10 +28,15 @@ class AppSettingsModel {
     this.locale,
   });
 
-  factory AppSettingsModel.fromEntity(AppSettings entity) {
+  /// [legacyClaudeApiKey] は、まだ移していない古いキーを残すときだけ渡す。
+  factory AppSettingsModel.fromEntity(
+    AppSettings entity, {
+    String? legacyClaudeApiKey,
+  }) {
     return AppSettingsModel(
       dailyNewCardLimit: entity.dailyNewCardLimit,
       dailyReviewCardLimit: entity.dailyReviewCardLimit,
+      legacyClaudeApiKey: legacyClaudeApiKey,
       aiProvider: entity.aiProvider.name,
       ttsSpeed: entity.ttsSpeed,
       autoReadAloud: entity.autoReadAloud,
