@@ -106,7 +106,7 @@ jobs:
         # 読み解き用の表（symbols）は Releases には置かず、Actions の成果物にだけ残す
         run: >
           flutter build apk --release --split-per-abi
-          --obfuscate --split-debug-info=build/symbols --strip
+          --obfuscate --split-debug-info=build/symbols
 
       - name: Remove the signing key
         if: always()
