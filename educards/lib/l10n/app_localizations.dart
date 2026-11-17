@@ -1166,6 +1166,18 @@ abstract class AppLocalizations {
   /// **'{provider} API key removed'**
   String settingsApiKeyDeletedMessage(String provider);
 
+  /// No description provided for @settingsApiKeySaveFailedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the {provider} API key. Please try again.'**
+  String settingsApiKeySaveFailedMessage(String provider);
+
+  /// No description provided for @settingsApiKeyGeminiNote.
+  ///
+  /// In en, this message translates to:
+  /// **'On Gemini\'s free tier, what you send may be used to improve Google\'s services. Do not send material that contains personal information.'**
+  String get settingsApiKeyGeminiNote;
+
   /// No description provided for @settingsTts.
   ///
   /// In en, this message translates to:

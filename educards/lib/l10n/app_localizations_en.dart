@@ -602,6 +602,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String settingsApiKeySaveFailedMessage(String provider) {
+    return 'Could not save the $provider API key. Please try again.';
+  }
+
+  @override
+  String get settingsApiKeyGeminiNote =>
+      'On Gemini\'s free tier, what you send may be used to improve Google\'s services. Do not send material that contains personal information.';
+
+  @override
   String get settingsTts => 'Text-to-Speech';
 
   @override

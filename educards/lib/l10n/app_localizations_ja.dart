@@ -598,6 +598,15 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String settingsApiKeySaveFailedMessage(String provider) {
+    return '$providerのAPIキーを保存できませんでした。もう一度試してください';
+  }
+
+  @override
+  String get settingsApiKeyGeminiNote =>
+      'Geminiの無料の枠では、送った内容がGoogleのサービスの改善に使われることがあります。個人の情報を含む資料は送らないでください。';
+
+  @override
   String get settingsTts => 'テキスト読み上げ';
 
   @override
