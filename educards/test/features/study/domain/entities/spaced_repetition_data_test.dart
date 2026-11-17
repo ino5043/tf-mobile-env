@@ -14,9 +14,12 @@ void main() {
     });
 
     test('should support equality via Equatable', () {
-      final data1 = SpacedRepetitionData.initial();
-      final data2 = SpacedRepetitionData.initial();
+      // initial() は現在時刻を使うため、日時を固定した値どうしで比べる
+      final reviewDate = DateTime(2026, 3, 15, 10, 0);
+      final data1 = SpacedRepetitionData.initial().copyWith(nextReviewDate: reviewDate);
+      final data2 = SpacedRepetitionData.initial().copyWith(nextReviewDate: reviewDate);
       expect(data1, data2);
+      expect(data1, isNot(data1.copyWith(repetitions: 1)));
     });
   });
 

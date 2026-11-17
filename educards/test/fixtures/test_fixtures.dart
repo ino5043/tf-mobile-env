@@ -35,7 +35,8 @@ class TestFixtures {
     easeFactor: 2.7,
     interval: 30,
     repetitions: 8,
-    nextReviewDate: fixedDate.add(const Duration(days: 10)),
+    // isDue は実行時の現在時刻と比べるため、固定日ではなく現在時刻から見た未来にする
+    nextReviewDate: DateTime.now().add(const Duration(days: 10)),
     mastery: MasteryLevel.mastered,
   );
 
