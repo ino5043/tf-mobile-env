@@ -36,6 +36,12 @@ void main() {
     expect(gradle, contains('signingConfigs.getByName("release")'));
   });
 
+  test('no unused plugin adds extra permissions', () {
+    // 使っていない通知の部品が、通知と振動の許可を足していた
+    final pubspec = File('pubspec.yaml').readAsStringSync();
+    expect(pubspec, isNot(contains('flutter_local_notifications')));
+  });
+
   test('no signing key file is committed', () {
     final keys = Directory('android')
         .listSync(recursive: true)

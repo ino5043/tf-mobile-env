@@ -42,11 +42,10 @@ dependencies:
   # HTTP (Claude API)
   http: ^1.2.0
 
-  # Notifications (Local)
-  flutter_local_notifications: ^19.0.0
-
   # TTS (Text-to-Speech)
   flutter_tts: ^4.2.0
+
+  # API キーの保存（Android: Keystore、iOS: キーチェーン）
   flutter_secure_storage: ^10.3.4
 
 dev_dependencies:
