@@ -4,8 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
+import 'package:educards/core/ai/ai_provider.dart';
 import 'package:educards/core/config/api_config.dart';
 import 'package:educards/features/deck/data/services/ai_generation_service.dart';
+import 'package:educards/features/deck/data/services/ai_text_client.dart';
 import 'package:educards/features/deck/domain/entities/card_type.dart';
 
 void main() {
@@ -37,7 +39,7 @@ void main() {
 
       final service = AIGenerationService(client: mockClient);
       final result = await service.generateFromMedia(
-        apiKey: testApiKey,
+        provider: AiProvider.claude, apiKey: testApiKey,
         fileBytes: [1, 2, 3],
         mimeType: 'image/jpeg',
         cardCount: 5,
@@ -82,7 +84,7 @@ void main() {
 
       final service = AIGenerationService(client: mockClient);
       await service.generateFromMedia(
-        apiKey: testApiKey,
+        provider: AiProvider.claude, apiKey: testApiKey,
         fileBytes: [0x25, 0x50, 0x44, 0x46], // %PDF
         mimeType: 'application/pdf',
         cardCount: 10,
@@ -106,7 +108,7 @@ void main() {
 
       expect(
         () => service.generateFromMedia(
-          apiKey: '',
+          provider: AiProvider.claude, apiKey: '',
           fileBytes: [1, 2, 3],
           mimeType: 'image/png',
           cardCount: 5,
@@ -123,7 +125,7 @@ void main() {
 
       expect(
         () => service.generateFromMedia(
-          apiKey: testApiKey,
+          provider: AiProvider.claude, apiKey: testApiKey,
           fileBytes: [1, 2, 3],
           mimeType: 'image/png',
           cardCount: 5,
@@ -146,7 +148,7 @@ void main() {
 
       final service = AIGenerationService(client: mockClient);
       final result = await service.generateFromMedia(
-        apiKey: testApiKey,
+        provider: AiProvider.claude, apiKey: testApiKey,
         fileBytes: [1, 2, 3],
         mimeType: 'image/jpeg',
         cardCount: 1,
@@ -175,7 +177,7 @@ void main() {
 
       final service = AIGenerationService(client: mockClient);
       await service.generateFromMedia(
-        apiKey: testApiKey,
+        provider: AiProvider.claude, apiKey: testApiKey,
         fileBytes: testBytes,
         mimeType: 'image/png',
         cardCount: 1,
@@ -199,7 +201,7 @@ void main() {
 
       final service = AIGenerationService(client: mockClient);
       final result = await service.generateFlashcards(
-        apiKey: testApiKey,
+        provider: AiProvider.claude, apiKey: testApiKey,
         topic: 'Dart',
         cardCount: 1,
         difficulty: 'medium',
@@ -225,7 +227,7 @@ void main() {
 
       await expectLater(
         service.generateFlashcards(
-          apiKey: testApiKey,
+          provider: AiProvider.claude, apiKey: testApiKey,
           topic: 'Dart',
           cardCount: 1,
           difficulty: 'easy',
@@ -235,7 +237,7 @@ void main() {
       );
       await expectLater(
         service.generateFromMedia(
-          apiKey: testApiKey,
+          provider: AiProvider.claude, apiKey: testApiKey,
           fileBytes: [1, 2, 3],
           mimeType: 'image/png',
           cardCount: 1,
@@ -257,13 +259,13 @@ void main() {
       final service = AIGenerationService(client: mockClient);
 
       await service.generateFlashcards(
-        apiKey: testApiKey,
+        provider: AiProvider.claude, apiKey: testApiKey,
         topic: 'Dart',
         cardCount: 1,
         difficulty: 'easy',
       );
       await service.generateFromMedia(
-        apiKey: testApiKey,
+        provider: AiProvider.claude, apiKey: testApiKey,
         fileBytes: [1, 2, 3],
         mimeType: 'image/png',
         cardCount: 1,
@@ -294,9 +296,9 @@ void main() {
         () async {
       for (final body in [
         await captureBody((s) => s.generateFlashcards(
-            apiKey: testApiKey, topic: 'Dart', cardCount: 1, difficulty: 'easy')),
+            provider: AiProvider.claude, apiKey: testApiKey, topic: 'Dart', cardCount: 1, difficulty: 'easy')),
         await captureBody((s) => s.generateFromMedia(
-            apiKey: testApiKey,
+            provider: AiProvider.claude, apiKey: testApiKey,
             fileBytes: [1, 2, 3],
             mimeType: 'image/png',
             cardCount: 1)),
@@ -327,7 +329,7 @@ void main() {
           ));
       final result = await AIGenerationService(client: client)
           .generateFlashcards(
-              apiKey: testApiKey, topic: 'Dart', cardCount: 1, difficulty: 'easy');
+              provider: AiProvider.claude, apiKey: testApiKey, topic: 'Dart', cardCount: 1, difficulty: 'easy');
 
       expect(result, hasLength(1));
       expect(result[0]['front'], 'Q1');
@@ -342,7 +344,7 @@ void main() {
 
       await expectLater(
         AIGenerationService(client: client).generateFlashcards(
-            apiKey: testApiKey, topic: 'Dart', cardCount: 1, difficulty: 'easy'),
+            provider: AiProvider.claude, apiKey: testApiKey, topic: 'Dart', cardCount: 1, difficulty: 'easy'),
         throwsA(isA<Exception>()
             .having((e) => e.toString(), 'message', contains('declined'))),
       );
@@ -361,10 +363,105 @@ void main() {
 
       await expectLater(
         AIGenerationService(client: client).generateFlashcards(
-            apiKey: testApiKey, topic: 'Dart', cardCount: 1, difficulty: 'easy'),
+            provider: AiProvider.claude, apiKey: testApiKey, topic: 'Dart', cardCount: 1, difficulty: 'easy'),
         throwsA(isA<Exception>()
             .having((e) => e.toString(), 'message', contains('cut off'))),
       );
     });
   });
+
+  group('AIGenerationService with several AI providers', () {
+    late List<String> calls;
+
+    AIGenerationService serviceWithFakes() {
+      calls = [];
+      AiTextClient fake(String name) => _FakeTextClient(name, calls);
+      return AIGenerationService(clients: {
+        AiProvider.claude: fake('claude'),
+        AiProvider.openai: fake('openai'),
+        AiProvider.gemini: fake('gemini'),
+      });
+    }
+
+    for (final provider in AiProvider.values) {
+      test('sends the request to the chosen provider: ${provider.name}',
+          () async {
+        final service = serviceWithFakes();
+
+        final cards = await service.generateFlashcards(
+          provider: provider,
+          apiKey: 'k',
+          topic: 'Dart',
+          cardCount: 1,
+          difficulty: 'easy',
+        );
+
+        expect(calls, [provider.name]);
+        expect(cards.single['front'], 'Q');
+      });
+    }
+
+    test('names the provider when its key is missing', () {
+      expect(
+        serviceWithFakes().generateFlashcards(
+          provider: AiProvider.gemini,
+          apiKey: '  ',
+          topic: 'Dart',
+          cardCount: 1,
+          difficulty: 'easy',
+        ),
+        throwsA(isA<Exception>()
+            .having((e) => e.toString(), 'message', contains('Gemini'))),
+      );
+      expect(calls, isEmpty);
+    });
+
+    test('refuses file types other than images and PDF', () {
+      expect(
+        serviceWithFakes().generateFromMedia(
+          provider: AiProvider.openai,
+          apiKey: 'k',
+          fileBytes: [1],
+          mimeType: 'text/html',
+          cardCount: 1,
+        ),
+        throwsA(isA<Exception>()
+            .having((e) => e.toString(), 'message', contains('not supported'))),
+      );
+      expect(calls, isEmpty);
+    });
+
+    test('refuses files larger than the limit before sending them', () {
+      expect(
+        serviceWithFakes().generateFromMedia(
+          provider: AiProvider.claude,
+          apiKey: 'k',
+          fileBytes: List<int>.filled(ApiConfig.maxMediaBytes + 1, 0),
+          mimeType: 'application/pdf',
+          cardCount: 1,
+        ),
+        throwsA(isA<Exception>()
+            .having((e) => e.toString(), 'message', contains('too large'))),
+      );
+      expect(calls, isEmpty);
+    });
+  });
+}
+
+class _FakeTextClient implements AiTextClient {
+  final String name;
+  final List<String> calls;
+
+  _FakeTextClient(this.name, this.calls);
+
+  @override
+  Future<String> complete({
+    required String apiKey,
+    required String prompt,
+    required int maxTokens,
+    AiMedia? media,
+  }) async {
+    calls.add(name);
+    return '[{"front":"Q","back":"A"}]';
+  }
 }
