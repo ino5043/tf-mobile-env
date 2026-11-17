@@ -91,7 +91,7 @@ Example: [{"front":"Solve: 2x + 6 = 14","back":"x = 4","hints":["Isolate the var
       'front': front,
       'back': back,
       'cardType': cardType.name,
-      if (metadata != null) 'metadata': metadata,
+      'metadata': ?metadata,
     };
   }
 

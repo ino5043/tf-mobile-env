@@ -90,7 +90,7 @@ class AIGenerationService implements CardGenerator {
       throw const AiRequestException('The file is empty.');
     }
     if (bytes.length > ApiConfig.maxMediaBytes) {
-      final limitMb = ApiConfig.maxMediaBytes ~/ (1024 * 1024);
+      const limitMb = ApiConfig.maxMediaBytes ~/ (1024 * 1024);
       throw AiRequestException('The file is too large. '
           'Please choose a file of $limitMb MB or less.');
     }

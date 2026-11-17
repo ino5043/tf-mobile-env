@@ -151,7 +151,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get deckCreateChooseFile => 'ファイルを選択';
 
   @override
-  String get deckCreateAITitle => 'Claude AIで生成';
+  String get deckCreateAITitle => 'AIで生成';
 
   @override
   String get deckCreateAISource => 'ソース';
@@ -195,12 +195,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get deckCreateAIGenerate => '生成';
 
   @override
-  String get deckCreateAIGeneratingText =>
-      'Claude AIがフラッシュカードを生成しています...\n数秒お待ちください。';
+  String get deckCreateAIGeneratingText => 'AIがフラッシュカードを生成しています...\n数秒お待ちください。';
 
   @override
   String get deckCreateAIGeneratingMedia =>
-      'Claude AIがファイルを解析してフラッシュカードを生成しています...\n大きいファイルは時間がかかる場合があります。';
+      'AIがファイルを解析してフラッシュカードを生成しています...\n大きいファイルは時間がかかる場合があります。';
 
   @override
   String get deckEditTitle => 'デッキ編集';
@@ -558,10 +557,45 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsAIGeneration => 'AI生成';
 
   @override
-  String get settingsClaudeApiKey => 'Claude APIキー';
+  String get settingsAiProvider => '使うAI';
 
   @override
-  String get settingsClaudeApiKeyHint => 'sk-ant-...';
+  String settingsApiKeyLabel(String provider) {
+    return '$providerのAPIキー';
+  }
+
+  @override
+  String get settingsApiKeyHintSaved => '保存済み（変えるときだけ入力）';
+
+  @override
+  String get settingsApiKeyHintEmpty => 'まだ入っていません';
+
+  @override
+  String settingsApiKeyHelp(String url) {
+    return 'キーは $url で作れます。キーはこの端末の中に暗号化して保存し、選んだAIの会社にだけ送ります。';
+  }
+
+  @override
+  String get settingsApiKeyShow => 'キーを表示';
+
+  @override
+  String get settingsApiKeyHide => 'キーを隠す';
+
+  @override
+  String get settingsApiKeySave => 'キーを保存';
+
+  @override
+  String get settingsApiKeyDelete => 'キーを消す';
+
+  @override
+  String settingsApiKeySavedMessage(String provider) {
+    return '$providerのAPIキーを保存しました';
+  }
+
+  @override
+  String settingsApiKeyDeletedMessage(String provider) {
+    return '$providerのAPIキーを消しました';
+  }
 
   @override
   String get settingsTts => 'テキスト読み上げ';

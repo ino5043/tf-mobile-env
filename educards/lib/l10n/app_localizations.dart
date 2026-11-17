@@ -365,7 +365,7 @@ abstract class AppLocalizations {
   /// No description provided for @deckCreateAITitle.
   ///
   /// In en, this message translates to:
-  /// **'Generate with Claude AI'**
+  /// **'Generate with AI'**
   String get deckCreateAITitle;
 
   /// No description provided for @deckCreateAISource.
@@ -449,13 +449,13 @@ abstract class AppLocalizations {
   /// No description provided for @deckCreateAIGeneratingText.
   ///
   /// In en, this message translates to:
-  /// **'Claude AI is generating your flashcards...\nThis may take a few seconds.'**
+  /// **'AI is generating your flashcards...\nThis may take a few seconds.'**
   String get deckCreateAIGeneratingText;
 
   /// No description provided for @deckCreateAIGeneratingMedia.
   ///
   /// In en, this message translates to:
-  /// **'Claude AI is analyzing your file and generating flashcards...\nThis may take longer for large files.'**
+  /// **'AI is analyzing your file and generating flashcards...\nThis may take longer for large files.'**
   String get deckCreateAIGeneratingMedia;
 
   /// No description provided for @deckEditTitle.
@@ -1100,17 +1100,71 @@ abstract class AppLocalizations {
   /// **'AI Generation'**
   String get settingsAIGeneration;
 
-  /// No description provided for @settingsClaudeApiKey.
+  /// No description provided for @settingsAiProvider.
   ///
   /// In en, this message translates to:
-  /// **'Claude API Key'**
-  String get settingsClaudeApiKey;
+  /// **'AI to use'**
+  String get settingsAiProvider;
 
-  /// No description provided for @settingsClaudeApiKeyHint.
+  /// No description provided for @settingsApiKeyLabel.
   ///
   /// In en, this message translates to:
-  /// **'sk-ant-...'**
-  String get settingsClaudeApiKeyHint;
+  /// **'{provider} API key'**
+  String settingsApiKeyLabel(String provider);
+
+  /// No description provided for @settingsApiKeyHintSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved (enter only to change it)'**
+  String get settingsApiKeyHintSaved;
+
+  /// No description provided for @settingsApiKeyHintEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set yet'**
+  String get settingsApiKeyHintEmpty;
+
+  /// No description provided for @settingsApiKeyHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a key at {url}. The key is stored encrypted on this device and is sent only to the AI company you chose.'**
+  String settingsApiKeyHelp(String url);
+
+  /// No description provided for @settingsApiKeyShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show key'**
+  String get settingsApiKeyShow;
+
+  /// No description provided for @settingsApiKeyHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide key'**
+  String get settingsApiKeyHide;
+
+  /// No description provided for @settingsApiKeySave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save key'**
+  String get settingsApiKeySave;
+
+  /// No description provided for @settingsApiKeyDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove key'**
+  String get settingsApiKeyDelete;
+
+  /// No description provided for @settingsApiKeySavedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{provider} API key saved'**
+  String settingsApiKeySavedMessage(String provider);
+
+  /// No description provided for @settingsApiKeyDeletedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{provider} API key removed'**
+  String settingsApiKeyDeletedMessage(String provider);
 
   /// No description provided for @settingsTts.
   ///
