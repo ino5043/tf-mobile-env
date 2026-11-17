@@ -7,10 +7,15 @@ import '../domain/tts_service.dart';
 ///
 /// Uses Web Speech API on Chrome/Edge and native TTS on mobile.
 class TtsServiceImpl implements TtsService {
-  final FlutterTts _tts = FlutterTts();
+  final FlutterTts _tts;
   bool _speaking = false;
 
-  TtsServiceImpl() {
+  /// speak() が「話し終わるまで」待つようにする設定。
+  /// これが無いと speak() は話し始めた時点で戻り、聞き流しモードが次の文へ進んで
+  /// 読み上げを途中で止めてしまう。
+  Future<dynamic>? _awaitCompletionConfigured;
+
+  TtsServiceImpl({FlutterTts? tts}) : _tts = tts ?? FlutterTts() {
     _tts.setCompletionHandler(() => _speaking = false);
     _tts.setCancelHandler(() => _speaking = false);
     _tts.setErrorHandler((_) => _speaking = false);
@@ -23,10 +28,17 @@ class TtsServiceImpl implements TtsService {
   Future<void> speak(String text, {String? language}) async {
     if (text.isEmpty) return;
 
+    _awaitCompletionConfigured ??= _tts.awaitSpeakCompletion(true);
+    await _awaitCompletionConfigured;
+
     final lang = language ?? detectLanguage(text);
     await _tts.setLanguage(lang);
     _speaking = true;
-    await _tts.speak(text);
+    try {
+      await _tts.speak(text);
+    } finally {
+      _speaking = false;
+    }
   }
 
   @override

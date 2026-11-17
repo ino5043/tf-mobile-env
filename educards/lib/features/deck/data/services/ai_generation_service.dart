@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -7,9 +8,41 @@ import 'package:educards/features/deck/domain/entities/card_type.dart';
 
 class AIGenerationService {
   final http.Client _client;
+  final Duration _timeout;
 
-  AIGenerationService({http.Client? client})
-      : _client = client ?? http.Client();
+  AIGenerationService({http.Client? client, Duration? timeout})
+      : _client = client ?? http.Client(),
+        _timeout = timeout ?? ApiConfig.requestTimeout;
+
+  /// Messages API を呼ぶ共通処理。時間切れと、ブラウザから直接呼ぶときに
+  /// 必要なヘッダーをここでまとめて扱う。
+  Future<http.Response> _postMessages(
+    String apiKey,
+    Map<String, dynamic> body, {
+    Map<String, String> extraHeaders = const {},
+  }) async {
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': ApiConfig.anthropicVersion,
+      // Web 版はブラウザから API を直接呼ぶため、このヘッダーが無いと CORS で拒否される。
+      // API キーは利用者が設定画面で入れた本人のキーで、端末の外には出さない。
+      'anthropic-dangerous-direct-browser-access': 'true',
+      ...extraHeaders,
+    };
+    try {
+      return await _client
+          .post(
+            Uri.parse(ApiConfig.claudeApiUrl),
+            headers: headers,
+            body: jsonEncode(body),
+          )
+          .timeout(_timeout);
+    } on TimeoutException {
+      throw Exception('Claude API request timed out after '
+          '${_timeout.inSeconds}s. Please check your connection and try again.');
+    }
+  }
 
   Future<List<Map<String, dynamic>>> generateFlashcards({
     required String apiKey,
@@ -25,21 +58,13 @@ class AIGenerationService {
 
     final prompt = _buildPrompt(topic, cardCount, difficulty, cardType);
 
-    final response = await _client.post(
-      Uri.parse(ApiConfig.claudeApiUrl),
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': ApiConfig.anthropicVersion,
-      },
-      body: jsonEncode({
-        'model': ApiConfig.claudeModel,
-        'max_tokens': ApiConfig.maxTokens,
-        'messages': [
-          {'role': 'user', 'content': prompt}
-        ],
-      }),
-    );
+    final response = await _postMessages(apiKey, {
+      'model': ApiConfig.claudeModel,
+      'max_tokens': ApiConfig.maxTokens,
+      'messages': [
+        {'role': 'user', 'content': prompt}
+      ],
+    });
 
     if (response.statusCode != 200) {
       throw Exception(
@@ -138,20 +163,9 @@ Example: [{"front":"Solve: 2x + 6 = 14","back":"x = 4","hints":["Isolate the var
 
     final prompt = _buildMediaPrompt(cardCount, cardType);
 
-    final headers = <String, String>{
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': ApiConfig.anthropicVersion,
-    };
-
-    if (isPdf) {
-      headers['anthropic-beta'] = ApiConfig.pdfBetaHeader;
-    }
-
-    final response = await _client.post(
-      Uri.parse(ApiConfig.claudeApiUrl),
-      headers: headers,
-      body: jsonEncode({
+    final response = await _postMessages(
+      apiKey,
+      {
         'model': ApiConfig.claudeModel,
         'max_tokens': ApiConfig.mediaMaxTokens,
         'messages': [
@@ -163,7 +177,10 @@ Example: [{"front":"Solve: 2x + 6 = 14","back":"x = 4","hints":["Isolate the var
             ],
           }
         ],
-      }),
+      },
+      extraHeaders: {
+        if (isPdf) 'anthropic-beta': ApiConfig.pdfBetaHeader,
+      },
     );
 
     if (response.statusCode != 200) {

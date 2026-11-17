@@ -1,8 +1,8 @@
-name: Deploy to GitHub Pages
+name: EduCards Deploy to GitHub Pages
 
+# GitHub Pages はまだ有効にしていないため、手動で起動したときだけ動かす。
+# Pages を有効にしたら、push: branches: [main] を足して自動公開に戻す。
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -30,7 +30,7 @@ jobs:
         working-directory: educards
 
       - name: Build Web
-        run: flutter build web --release --base-href "/12_tf-mobile-env/"
+        run: flutter build web --release --base-href "/tf-mobile-env/"
         working-directory: educards
 
       - name: Setup Pages

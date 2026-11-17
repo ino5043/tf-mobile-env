@@ -15,6 +15,7 @@ class StudySessionBloc extends Bloc<StudySessionEvent, StudySessionState> {
   int _currentIndex = 0;
   int _correctCount = 0;
   String _deckId = '';
+  bool _isRating = false;
 
   StudySessionBloc({
     required this.getDueCards,
@@ -64,6 +65,10 @@ class StudySessionBloc extends Bloc<StudySessionEvent, StudySessionState> {
     RateCard event,
     Emitter<StudySessionState> emit,
   ) async {
+    // Bloc はイベントを並行に処理するため、評価ボタンの連打で同じカードを
+    // 2 回採点しないよう、採点中と「カード表示中」以外の評価は無視する。
+    if (_isRating || state is! CardPresented) return;
+    _isRating = true;
     try {
       final card = _cards[_currentIndex];
       await reviewCard(ReviewCardParams(
@@ -92,6 +97,8 @@ class StudySessionBloc extends Bloc<StudySessionEvent, StudySessionState> {
       }
     } catch (e) {
       emit(StudySessionError(e.toString()));
+    } finally {
+      _isRating = false;
     }
   }
 }

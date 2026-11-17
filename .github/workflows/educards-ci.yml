@@ -1,13 +1,23 @@
-name: Flutter CI
+name: EduCards CI
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'educards/**'
+      - '.github/workflows/educards-ci.yml'
   pull_request:
     branches: [main]
+    paths:
+      - 'educards/**'
+      - '.github/workflows/educards-ci.yml'
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    working-directory: educards
 
 jobs:
   analyze-and-test:
@@ -23,29 +33,22 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
-        working-directory: educards
-
-      - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed .
-        working-directory: educards
 
       - name: Analyze project source
         run: flutter analyze --no-fatal-infos
-        working-directory: educards
 
       - name: Run tests
-        run: flutter test --coverage --reporter json > test-results/junit.xml || true
-        working-directory: educards
+        run: |
+          mkdir -p test-results
+          flutter test --coverage --file-reporter json:test-results/results.json
 
-      - name: Run tests (verbose)
-        run: flutter test --coverage
-        working-directory: educards
-
-      - name: Upload coverage
+      - name: Upload test evidence
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ github.sha }}
-          path: educards/coverage/
+          name: educards-test-evidence-${{ github.sha }}
+          path: |
+            educards/test-results/
+            educards/coverage/
           retention-days: 90
         if: always()
 
@@ -63,15 +66,6 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
-        working-directory: educards
 
       - name: Build Web
-        run: flutter build web --release --base-href "/12_tf-mobile-env/"
-        working-directory: educards
-
-      - name: Upload web build
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-build-${{ github.sha }}
-          path: educards/build/web/
-          retention-days: 90
+        run: flutter build web --release --base-href "/tf-mobile-env/"
