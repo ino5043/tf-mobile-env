@@ -508,6 +508,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get progressAverageAccuracy => 'Average accuracy';
 
   @override
+  String get progressMasteryEmpty => 'No cards yet';
+
+  @override
+  String progressMasteryLegendItem(String label, int count) {
+    return '$label: $count';
+  }
+
+  @override
+  String get progressTrendEmpty => 'No study data yet';
+
+  @override
   String get progressDeckListEmpty => 'No decks yet';
 
   @override

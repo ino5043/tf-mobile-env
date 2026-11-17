@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'package:educards/core/theme/app_tokens.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:educards/core/widgets/error_display.dart';
@@ -120,12 +122,12 @@ class ProgressPage extends StatelessWidget {
                           Row(
                             children: [
                               _LegendDot(
-                                color: Colors.green,
+                                color: AppColors.of(context).chartCorrect,
                                 label: l10n.progressCorrectLegend,
                               ),
                               const SizedBox(width: 16),
                               _LegendDot(
-                                color: Colors.orange.shade300,
+                                color: AppColors.of(context).chartIncorrect,
                                 label: l10n.progressIncorrectLegend,
                               ),
                             ],

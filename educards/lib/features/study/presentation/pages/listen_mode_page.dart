@@ -152,7 +152,7 @@ class _ListenModePageState extends State<ListenModePage> {
                   Text(
                     state.deckTitle,
                     style: theme.textTheme.titleSmall?.copyWith(
-                      color: colorScheme.outline,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -202,7 +202,6 @@ class _ListenModePageState extends State<ListenModePage> {
     final l10n = AppLocalizations.of(context);
 
     return Card(
-      elevation: 2,
       child: SizedBox(
         width: double.infinity,
         child: Padding(
@@ -360,7 +359,7 @@ class _ListenModePageState extends State<ListenModePage> {
               Text(
                 l10n.listenModeCompleteSummary(state.totalCards, state.deckTitle),
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.outline,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),

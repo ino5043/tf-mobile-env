@@ -505,6 +505,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get progressAverageAccuracy => '平均正答率';
 
   @override
+  String get progressMasteryEmpty => 'まだカードがありません';
+
+  @override
+  String progressMasteryLegendItem(String label, int count) {
+    return '$label $count枚';
+  }
+
+  @override
+  String get progressTrendEmpty => 'まだ学習の記録がありません';
+
+  @override
   String get progressDeckListEmpty => 'デッキがありません';
 
   @override

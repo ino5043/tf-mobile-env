@@ -167,6 +167,9 @@
   "progressTotalCorrect": "総正解数",
   "progressAverageAccuracy": "平均正答率",
 
+  "progressMasteryEmpty": "まだカードがありません",
+  "progressMasteryLegendItem": "{label} {count}枚",
+  "progressTrendEmpty": "まだ学習の記録がありません",
   "progressDeckListEmpty": "デッキがありません",
   "progressDeckListTotal": "合計",
   "progressDeckListMastered": "習得済み",

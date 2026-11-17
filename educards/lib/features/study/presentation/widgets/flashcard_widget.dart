@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:educards/core/theme/app_tokens.dart';
+
 import 'package:educards/features/deck/domain/entities/flashcard.dart';
 import 'card_content_renderer.dart';
 
@@ -37,7 +39,11 @@ class FlashcardWidget extends StatelessWidget {
           },
           child: Card(
             key: ValueKey(isFlipped),
-            elevation: 4,
+            // 影ではなく枠線で境界を示す（UI/UX 標準 3-11）。角は大きく丸める
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.xl),
+              side: BorderSide(color: Theme.of(context).colorScheme.outline),
+            ),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(32),

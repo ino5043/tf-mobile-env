@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:educards/features/deck/domain/entities/flashcard.dart';
 import 'package:educards/l10n/app_localizations.dart';
 import 'card_content_renderer.dart';
+import 'card_side_label.dart';
 
 /// Renders multiple-choice cards.
 ///
@@ -25,13 +26,7 @@ class MultiChoiceCardRenderer implements CardContentRenderer {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          l10n.cardRendererChooseAnswer,
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: theme.colorScheme.outline,
-          ),
-          textAlign: TextAlign.center,
-        ),
+        CardSideLabel(l10n.cardRendererChooseAnswer),
         const SizedBox(height: 16),
         Text(
           card.front,
@@ -61,7 +56,7 @@ class MultiChoiceCardRenderer implements CardContentRenderer {
         Text(
           l10n.cardRendererTapToRevealAnswer,
           style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.outline,
+            color: theme.colorScheme.onSurfaceVariant,
           ),
           textAlign: TextAlign.center,
         ),
@@ -134,7 +129,7 @@ class MultiChoiceCardRenderer implements CardContentRenderer {
         Text(
           card.back,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.outline,
+            color: theme.colorScheme.onSurfaceVariant,
           ),
           textAlign: TextAlign.center,
         ),

@@ -2,7 +2,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'package:educards/core/theme/app_tokens.dart';
 import 'package:educards/features/progress/domain/entities/progress_trend.dart';
+import 'package:educards/l10n/app_localizations.dart';
 
 class DailyTrendChart extends StatelessWidget {
   final ProgressTrend trend;
@@ -11,14 +13,16 @@ class DailyTrendChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (trend.dailyStats.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         height: 250,
-        child: Center(child: Text('No study data yet')),
+        child: Center(child: Text(l10n.progressTrendEmpty)),
       );
     }
 
     final theme = Theme.of(context);
+    final colors = AppColors.of(context);
     final dateFormat = DateFormat('M/d');
 
     double maxY = 5;
@@ -47,11 +51,11 @@ class DailyTrendChart extends StatelessWidget {
                 top: Radius.circular(4),
               ),
               rodStackItems: [
-                BarChartRodStackItem(0, correct, Colors.green),
+                BarChartRodStackItem(0, correct, colors.chartCorrect),
                 BarChartRodStackItem(
                   correct,
                   correct + incorrect,
-                  Colors.orange.shade300,
+                  colors.chartIncorrect,
                 ),
               ],
               color: Colors.transparent,
@@ -117,14 +121,15 @@ class DailyTrendChart extends StatelessWidget {
             barGroups: barGroups,
             barTouchData: BarTouchData(
               touchTooltipData: BarTouchTooltipData(
+                getTooltipColor: (_) => theme.colorScheme.inverseSurface,
                 getTooltipItem: (group, groupIndex, rod, rodIndex) {
                   final stat = trend.dailyStats[group.x];
                   return BarTooltipItem(
                     '${dateFormat.format(stat.date)}\n'
-                    'Correct: ${stat.correctCount}\n'
-                    'Incorrect: ${stat.incorrectCount}',
+                    '${l10n.progressCorrectLegend}：${stat.correctCount}\n'
+                    '${l10n.progressIncorrectLegend}：${stat.incorrectCount}',
                     theme.textTheme.bodySmall!.copyWith(
-                      color: Colors.white,
+                      color: theme.colorScheme.onInverseSurface,
                     ),
                   );
                 },

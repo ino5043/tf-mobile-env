@@ -186,6 +186,10 @@
   "progressTotalCorrect": "Total correct",
   "progressAverageAccuracy": "Average accuracy",
 
+  "progressMasteryEmpty": "No cards yet",
+  "progressMasteryLegendItem": "{label}: {count}",
+  "progressTrendEmpty": "No study data yet",
+  "@progressMasteryLegendItem": { "placeholders": { "label": { "type": "String" }, "count": { "type": "int" } } },
   "progressDeckListEmpty": "No decks yet",
   "progressDeckListTotal": "Total",
   "progressDeckListMastered": "Mastered",

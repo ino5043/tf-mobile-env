@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:educards/features/deck/domain/entities/flashcard.dart';
 import 'package:educards/l10n/app_localizations.dart';
 import 'card_content_renderer.dart';
+import 'card_side_label.dart';
 
 /// Renders step-by-step solution cards (math, problem-solving).
 ///
@@ -25,13 +26,7 @@ class StepByStepCardRenderer implements CardContentRenderer {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          l10n.cardRendererProblem,
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: theme.colorScheme.outline,
-          ),
-          textAlign: TextAlign.center,
-        ),
+        CardSideLabel(l10n.cardRendererProblem),
         const SizedBox(height: 16),
         Text(
           card.front,
@@ -84,7 +79,7 @@ class StepByStepCardRenderer implements CardContentRenderer {
         Text(
           l10n.cardRendererTapToRevealSolution,
           style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.outline,
+            color: theme.colorScheme.onSurfaceVariant,
           ),
           textAlign: TextAlign.center,
         ),
@@ -103,13 +98,7 @@ class StepByStepCardRenderer implements CardContentRenderer {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          l10n.cardRendererSolution,
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: theme.colorScheme.outline,
-          ),
-          textAlign: TextAlign.center,
-        ),
+        CardSideLabel(l10n.cardRendererSolution),
         if (steps.isNotEmpty) ...[
           const SizedBox(height: 16),
           ...steps.asMap().entries.map((entry) => Padding(

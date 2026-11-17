@@ -1,8 +1,16 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import 'package:educards/core/theme/app_tokens.dart';
 import 'package:educards/features/progress/domain/entities/deck_progress.dart';
+import 'package:educards/features/study/domain/entities/spaced_repetition_data.dart';
+import 'package:educards/features/study/presentation/widgets/mastery_colors.dart';
+import 'package:educards/l10n/app_localizations.dart';
 
+/// 習熟度の内訳の円グラフ。
+///
+/// 値は円の上に白い文字で載せず、凡例の文字で示す（UI/UX 標準 4-14、4-1）。
+/// 凡例はそのまま読み上げの要約にもなる（34-46）。
 class MasteryPieChart extends StatelessWidget {
   final List<DeckProgress> deckProgressList;
 
@@ -10,100 +18,83 @@ class MasteryPieChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int mastered = 0, review = 0, learning = 0, newCount = 0;
+    final l10n = AppLocalizations.of(context);
+    final colors = AppColors.of(context);
+
+    final counts = <MasteryLevel, int>{
+      MasteryLevel.mastered: 0,
+      MasteryLevel.review: 0,
+      MasteryLevel.learning: 0,
+      MasteryLevel.newCard: 0,
+    };
     for (final dp in deckProgressList) {
-      mastered += dp.masteredCount;
-      review += dp.reviewCount;
-      learning += dp.learningCount;
-      newCount += dp.newCount;
+      counts[MasteryLevel.mastered] = counts[MasteryLevel.mastered]! + dp.masteredCount;
+      counts[MasteryLevel.review] = counts[MasteryLevel.review]! + dp.reviewCount;
+      counts[MasteryLevel.learning] = counts[MasteryLevel.learning]! + dp.learningCount;
+      counts[MasteryLevel.newCard] = counts[MasteryLevel.newCard]! + dp.newCount;
     }
 
-    final total = mastered + review + learning + newCount;
+    final total = counts.values.fold<int>(0, (a, b) => a + b);
     if (total == 0) {
-      return const SizedBox(
+      return SizedBox(
         height: 200,
-        child: Center(child: Text('No cards yet')),
+        child: Center(child: Text(l10n.progressMasteryEmpty)),
       );
     }
 
-    final theme = Theme.of(context);
-    return SizedBox(
-      height: 200,
-      child: Row(
-        children: [
-          Expanded(
-            child: PieChart(
-              PieChartData(
-                sectionsSpace: 2,
-                centerSpaceRadius: 30,
-                sections: [
-                  if (mastered > 0)
-                    PieChartSectionData(
-                      value: mastered.toDouble(),
-                      color: Colors.green,
-                      title: '$mastered',
-                      titleStyle: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                      radius: 50,
-                    ),
-                  if (review > 0)
-                    PieChartSectionData(
-                      value: review.toDouble(),
-                      color: Colors.blue,
-                      title: '$review',
-                      titleStyle: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                      radius: 50,
-                    ),
-                  if (learning > 0)
-                    PieChartSectionData(
-                      value: learning.toDouble(),
-                      color: Colors.orange,
-                      title: '$learning',
-                      titleStyle: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                      radius: 50,
-                    ),
-                  if (newCount > 0)
-                    PieChartSectionData(
-                      value: newCount.toDouble(),
-                      color: theme.colorScheme.outline,
-                      title: '$newCount',
-                      titleStyle: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                      radius: 50,
-                    ),
-                ],
+    String labelOf(MasteryLevel level) => switch (level) {
+          MasteryLevel.mastered => l10n.deckDetailStatusMastered,
+          MasteryLevel.review => l10n.deckDetailStatusReview,
+          MasteryLevel.learning => l10n.deckDetailStatusLearning,
+          MasteryLevel.newCard => l10n.deckDetailStatusNew,
+        };
+
+    final entries = counts.entries.toList();
+    final summary = entries
+        .map((e) => l10n.progressMasteryLegendItem(labelOf(e.key), e.value))
+        .join('、');
+
+    return Semantics(
+      label: summary,
+      excludeSemantics: true,
+      child: SizedBox(
+        height: 200,
+        child: Row(
+          children: [
+            Expanded(
+              child: PieChart(
+                PieChartData(
+                  sectionsSpace: 3,
+                  centerSpaceRadius: 32,
+                  sections: [
+                    for (final e in entries)
+                      if (e.value > 0)
+                        PieChartSectionData(
+                          value: e.value.toDouble(),
+                          color: colors.forMastery(e.key),
+                          showTitle: false,
+                          radius: 48,
+                        ),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const _Legend(color: Colors.green, label: 'Mastered'),
-              const SizedBox(height: 4),
-              const _Legend(color: Colors.blue, label: 'Review'),
-              const SizedBox(height: 4),
-              const _Legend(color: Colors.orange, label: 'Learning'),
-              const SizedBox(height: 4),
-              _Legend(color: theme.colorScheme.outline, label: 'New'),
-            ],
-          ),
-        ],
+            const SizedBox(width: 16),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final (i, e) in entries.indexed) ...[
+                  if (i > 0) const SizedBox(height: 8),
+                  _Legend(
+                    color: colors.forMastery(e.key),
+                    label: l10n.progressMasteryLegendItem(labelOf(e.key), e.value),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -120,8 +111,15 @@ class _Legend extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 12, height: 12, color: color),
-        const SizedBox(width: 6),
+        Container(
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(AppRadius.full),
+          ),
+        ),
+        const SizedBox(width: 8),
         Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
     );

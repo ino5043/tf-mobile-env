@@ -201,7 +201,7 @@ class _ManualTab extends StatelessWidget {
                           padding: const EdgeInsets.only(left: 4),
                           child: Chip(
                             label: Text(typeLabel,
-                                style: const TextStyle(fontSize: 10)),
+                                style: const TextStyle(fontSize: 14)),
                             padding: EdgeInsets.zero,
                             materialTapTargetSize:
                                 MaterialTapTargetSize.shrinkWrap,
@@ -243,7 +243,7 @@ class _ImportTab extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             l10n.deckCreateImportTitle,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
           Text(

@@ -26,8 +26,8 @@ class StreakCounter extends StatelessWidget {
                 Icons.local_fire_department,
                 size: 48,
                 color: streak.currentStreak > 0
-                    ? Colors.orange
-                    : colorScheme.outline,
+                    ? colorScheme.tertiary
+                    : colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: 16),
               Expanded(

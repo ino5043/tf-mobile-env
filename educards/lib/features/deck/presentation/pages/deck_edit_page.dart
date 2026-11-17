@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'package:educards/core/theme/app_tokens.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -269,7 +271,7 @@ class _ViewCardTile extends StatelessWidget {
             Text(
               card.back,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.outline,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
             if (!card.isNew && card.srData != null) ...[
@@ -277,7 +279,7 @@ class _ViewCardTile extends StatelessWidget {
               Text(
                 l10n.deckEditRepetitions(card.srData!.repetitions),
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.outline,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -351,13 +353,16 @@ class _EditableCardTileState extends State<_EditableCardTile> {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  Icon(Icons.info_outline,
-                      size: 14, color: Colors.orange.shade700),
+                  // 警告は警告の色・形・文字をそろえる（7-11）
+                  Icon(Icons.warning_amber_rounded,
+                      size: 20, color: AppColors.of(context).warningText),
                   const SizedBox(width: 4),
-                  Text(
-                    l10n.deckEditSrResetWarning,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: Colors.orange.shade700,
+                  Expanded(
+                    child: Text(
+                      l10n.deckEditSrResetWarning,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppColors.of(context).warningText,
+                      ),
                     ),
                   ),
                 ],

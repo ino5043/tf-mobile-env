@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
+import 'package:educards/core/theme/app_tokens.dart';
 import 'package:educards/features/study/domain/entities/review_rating.dart';
 import 'package:educards/l10n/app_localizations.dart';
 
-/// Rating buttons for SM-2 difficulty feedback.
-/// Touch targets are 48x48dp minimum (Material Design 3 / WCAG).
+/// SM-2 の評価ボタン（もう一度・難しい・普通・簡単）。
+///
+/// 色はキーの色（ミント）の濃淡の 4 段で、意味の色（赤・緑）は使わない
+/// （UI/UX 標準 4-4・4-15）。意味はアイコンと文字の組で伝える（4-3・7-1）。
+/// 押せる大きさは 56dp 以上（6-8）。
 class RatingButtons extends StatelessWidget {
   final void Function(ReviewRating rating) onRate;
 
@@ -13,35 +17,53 @@ class RatingButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
+    final colors = AppColors.of(context);
+
+    final items = [
+      (
+        rating: ReviewRating.again,
+        label: l10n.ratingAgain,
+        icon: Icons.replay_rounded,
+        background: colors.ratingAgain,
+        foreground: colors.onRatingLight,
+      ),
+      (
+        rating: ReviewRating.hard,
+        label: l10n.ratingHard,
+        icon: Icons.sentiment_neutral_rounded,
+        background: colors.ratingHard,
+        foreground: colors.onRatingLight,
+      ),
+      (
+        rating: ReviewRating.good,
+        label: l10n.ratingGood,
+        icon: Icons.sentiment_satisfied_rounded,
+        background: colors.ratingGood,
+        foreground: colors.onRatingStrong,
+      ),
+      (
+        rating: ReviewRating.easy,
+        label: l10n.ratingEasy,
+        icon: Icons.star_rounded,
+        background: colors.ratingEasy,
+        foreground: colors.onRatingStrong,
+      ),
+    ];
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _RatingButton(
-          label: l10n.ratingAgain,
-          color: colorScheme.error,
-          icon: Icons.close,
-          onPressed: () => onRate(ReviewRating.again),
-        ),
-        _RatingButton(
-          label: l10n.ratingHard,
-          color: colorScheme.tertiary,
-          icon: Icons.sentiment_dissatisfied,
-          onPressed: () => onRate(ReviewRating.hard),
-        ),
-        _RatingButton(
-          label: l10n.ratingGood,
-          color: colorScheme.primary,
-          icon: Icons.sentiment_satisfied,
-          onPressed: () => onRate(ReviewRating.good),
-        ),
-        _RatingButton(
-          label: l10n.ratingEasy,
-          color: colorScheme.secondary,
-          icon: Icons.sentiment_very_satisfied,
-          onPressed: () => onRate(ReviewRating.easy),
-        ),
+        for (final (index, item) in items.indexed) ...[
+          if (index > 0) const SizedBox(width: 8),
+          Expanded(
+            child: _RatingButton(
+              label: item.label,
+              icon: item.icon,
+              background: item.background,
+              foreground: item.foreground,
+              onPressed: () => onRate(item.rating),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -49,45 +71,60 @@ class RatingButtons extends StatelessWidget {
 
 class _RatingButton extends StatelessWidget {
   final String label;
-  final Color color;
   final IconData icon;
+  final Color background;
+  final Color foreground;
   final VoidCallback onPressed;
 
   const _RatingButton({
     required this.label,
-    required this.color,
     required this.icon,
+    required this.background,
+    required this.foreground,
     required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final outline = Theme.of(context).colorScheme.outlineVariant;
     return Semantics(
       label: l10n.ratingSemantics(label),
       button: true,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          constraints: const BoxConstraints(
-            minWidth: 48,
-            minHeight: 48,
+      excludeSemantics: true,
+      child: FilledButton(
+        onPressed: onPressed,
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.all(background),
+          foregroundColor: WidgetStateProperty.all(foreground),
+          minimumSize: WidgetStateProperty.all(const Size(56, 64)),
+          padding: WidgetStateProperty.all(
+            const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: color),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: color,
-                    ),
-              ),
-            ],
+          shape: WidgetStateProperty.all(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
           ),
+          side: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.focused)) {
+              return const BorderSide(color: AppPalette.focusOutline, width: 3);
+            }
+            return BorderSide(color: outline);
+          }),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 24),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+            ),
+          ],
         ),
       ),
     );

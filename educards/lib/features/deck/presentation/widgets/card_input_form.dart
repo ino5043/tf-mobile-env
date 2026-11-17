@@ -149,7 +149,7 @@ class _CardInputFormState extends State<CardInputForm> {
                           value: t,
                           label: Text(
                             _cardTypeLabel(t, l10n),
-                            style: const TextStyle(fontSize: 11),
+                            style: const TextStyle(fontSize: 14),
                           ),
                           icon: Icon(_cardTypeIcon(t), size: 16),
                         ))
@@ -287,8 +287,8 @@ class _CardInputFormState extends State<CardInputForm> {
             child: Row(
               children: [
                 CircleAvatar(
-                  radius: 12,
-                  child: Text('${i + 1}', style: const TextStyle(fontSize: 12)),
+                  radius: 14,
+                  child: Text('${i + 1}', style: const TextStyle(fontSize: 14)),
                 ),
                 const SizedBox(width: 8),
                 Expanded(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:educards/core/theme/app_tokens.dart';
+
 import 'package:educards/l10n/app_localizations.dart';
 import '../../domain/entities/deck.dart';
 
@@ -58,7 +60,7 @@ class DeckCard extends StatelessWidget {
                   Text(
                     deck.description,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.outline,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -75,9 +77,10 @@ class DeckCard extends StatelessWidget {
                     _StatChip(
                       icon: Icons.schedule,
                       label: l10n.deckCardDue(deck.dueCards),
+                      // 期限のカードはエラーではないので強調の色にする（4-4）
                       color: deck.dueCards > 0
-                          ? colorScheme.error
-                          : colorScheme.outline,
+                          ? AppColors.of(context).highlight
+                          : colorScheme.onSurfaceVariant,
                     ),
                   ],
                 ),

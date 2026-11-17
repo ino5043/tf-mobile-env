@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:educards/core/theme/app_tokens.dart';
+
 import 'package:educards/features/progress/domain/entities/deck_progress.dart';
 import 'package:educards/l10n/app_localizations.dart';
 
@@ -81,17 +83,17 @@ class _DeckProgressCard extends StatelessWidget {
                 _StatChip(
                   label: l10n.progressDeckListMastered,
                   value: '${progress.masteredCount}',
-                  color: Colors.green,
+                  color: AppColors.of(context).masteryMastered,
                 ),
                 _StatChip(
                   label: l10n.progressDeckListLearning,
                   value: '${progress.learningCount}',
-                  color: Colors.orange,
+                  color: AppColors.of(context).masteryLearning,
                 ),
                 _StatChip(
                   label: l10n.progressDeckListDue,
                   value: '${progress.dueCount}',
-                  color: theme.colorScheme.error,
+                  color: AppColors.of(context).highlight,
                 ),
               ],
             ),

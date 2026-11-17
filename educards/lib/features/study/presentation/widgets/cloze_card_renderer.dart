@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:educards/features/deck/domain/entities/flashcard.dart';
 import 'package:educards/l10n/app_localizations.dart';
 import 'card_content_renderer.dart';
+import 'card_side_label.dart';
 
 /// Renders cloze (fill-in-the-blank) cards.
 ///
@@ -20,23 +21,32 @@ class ClozeCardRenderer implements CardContentRenderer {
   Widget buildFront(BuildContext context, Flashcard card) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final maskedText = card.front.replaceAllMapped(
-      _blankPattern,
-      (m) => '_' * m.group(1)!.length.clamp(3, 10),
+    // 空欄を薄いミントの面で目立たせる（覚える対象の場所を一目で分かるように）
+    final blankStyle = TextStyle(
+      color: theme.colorScheme.onPrimaryContainer,
+      backgroundColor: theme.colorScheme.primaryContainer,
+      fontWeight: FontWeight.w700,
     );
+    final frontSpans = <InlineSpan>[];
+    final frontParts = card.front.split(_blankPattern);
+    final frontMatches = _blankPattern.allMatches(card.front).toList();
+    for (var i = 0; i < frontParts.length; i++) {
+      if (frontParts[i].isNotEmpty) {
+        frontSpans.add(TextSpan(text: frontParts[i]));
+      }
+      if (i < frontMatches.length) {
+        final length = frontMatches[i].group(1)!.length.clamp(3, 10);
+        frontSpans.add(TextSpan(text: ' ${'＿' * length} ', style: blankStyle));
+      }
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          l10n.cardRendererFillInTheBlank,
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: theme.colorScheme.outline,
-          ),
-        ),
+        CardSideLabel(l10n.cardRendererFillInTheBlank),
         const SizedBox(height: 16),
-        Text(
-          maskedText,
+        Text.rich(
+          TextSpan(children: frontSpans),
           style: theme.textTheme.headlineSmall,
           textAlign: TextAlign.center,
         ),
@@ -44,7 +54,7 @@ class ClozeCardRenderer implements CardContentRenderer {
         Text(
           l10n.cardRendererTapToRevealAnswer,
           style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.outline,
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
       ],
@@ -82,12 +92,7 @@ class ClozeCardRenderer implements CardContentRenderer {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          l10n.cardRendererAnswer,
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: theme.colorScheme.outline,
-          ),
-        ),
+        CardSideLabel(l10n.cardRendererAnswer),
         const SizedBox(height: 16),
         RichText(
           textAlign: TextAlign.center,
