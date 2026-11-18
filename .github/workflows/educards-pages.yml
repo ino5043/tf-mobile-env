@@ -3,7 +3,9 @@ name: EduCards Pages
 # 案内のページ（educards/site）を GitHub Pages に公開する。
 #   https://<owner>.github.io/tf-mobile-env/          はじめのページ
 #   https://<owner>.github.io/tf-mobile-env/android.html  Android に入れる方法
-# Web 版のアプリも置くときは、手動で起動して include_web_app を true にする（/app/ に置く）。
+#   https://<owner>.github.io/tf-mobile-env/app/      ブラウザで試せるデモ（Web 版のアプリ）
+# はじめのページに「デモを開く」のボタンがあるので、Web 版のアプリも既定で /app/ に置く。
+# 案内のページだけを置くときは、手動で起動して include_web_app を false にする（ボタンの先は無くなる）。
 # Pages を有効にするまでは手動で起動したときだけ動かす。有効にしたら push を足す。
 on:
   workflow_dispatch:
@@ -11,7 +13,7 @@ on:
       include_web_app:
         description: 'Web 版のアプリも /app/ に置く'
         type: boolean
-        default: false
+        default: true
 
 permissions:
   contents: read
