@@ -36,17 +36,16 @@ dependencies:
   fl_chart: ^0.70.2
 
   # File Import
-  file_picker: ^8.0.0
+  file_picker: ^10.0.0
   csv: ^6.0.0
 
   # HTTP (Claude API)
   http: ^1.2.0
 
-  # Notifications (Local)
-  flutter_local_notifications: ^19.0.0
-
   # TTS (Text-to-Speech)
   flutter_tts: ^4.2.0
+
+  # API キーの保存（Android: Keystore、iOS: キーチェーン）
   flutter_secure_storage: ^10.3.4
 
 dev_dependencies:

@@ -1,0 +1,96 @@
+/* EduCards の案内ページ。色はアプリの配色（ミント、ADR-004）に合わせる。外部の読み込みはしない。 */
+:root {
+  --bg: #f5fbfa;
+  --surface: #ffffff;
+  --text: #1a2321;
+  --muted: #55616f;
+  --primary: #00796b;
+  --on-primary: #ffffff;
+  --primary-soft: #d9f3ee;
+  --on-primary-soft: #004d43;
+  --border: #c9dcd8;
+  --warn-bg: #fff6d6;
+  --warn-text: #5c4700;
+  --focus: #ffd43d;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1716;
+    --surface: #18211f;
+    --text: #e3ebe9;
+    --muted: #a9b6b3;
+    --primary: #5fd4c2;
+    --on-primary: #00382f;
+    --primary-soft: #1f3a35;
+    --on-primary-soft: #bdeee5;
+    --border: #3a4a47;
+    --warn-bg: #3a3214;
+    --warn-text: #f0cf5b;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+}
+main { max-width: 720px; margin: 0 auto; padding: 24px 16px 64px; }
+header { margin-bottom: 24px; }
+h1 { font-size: 28px; line-height: 1.4; margin: 0 0 8px; }
+h2 { font-size: 21px; margin: 40px 0 12px; padding-top: 8px; border-top: 1px solid var(--border); }
+h3 { font-size: 17px; margin: 24px 0 8px; }
+p, li { margin: 0 0 12px; }
+ol, ul { padding-left: 1.5em; }
+.lead { color: var(--muted); }
+a { color: var(--primary); text-underline-offset: 3px; }
+a:focus-visible, .button:focus-visible {
+  outline: 3px solid #000;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--focus);
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px;
+  margin: 16px 0;
+}
+.button {
+  display: inline-block;
+  min-height: 48px;
+  padding: 12px 28px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+.button.secondary {
+  background: var(--primary-soft);
+  color: var(--on-primary-soft);
+}
+.note {
+  background: var(--warn-bg);
+  color: var(--warn-text);
+  border-radius: 16px;
+  padding: 12px 16px;
+  margin: 16px 0;
+}
+.small { font-size: 14px; color: var(--muted); }
+code {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 14px;
+  background: var(--primary-soft);
+  color: var(--on-primary-soft);
+  padding: 2px 6px;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+footer { margin-top: 48px; font-size: 14px; color: var(--muted); }
+.card h2.first { border-top: 0; margin-top: 0; padding-top: 0; }

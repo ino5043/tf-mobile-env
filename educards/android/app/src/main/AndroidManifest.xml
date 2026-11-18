@@ -1,8 +1,23 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- AI でのカード作りで、選んだ AI の会社の API（HTTPS）につなぐ -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!--
+      安全のための設定（mobile-security ルール 3・9）
+      - allowBackup / dataExtractionRules: 端末のバックアップや機種変更の引き継ぎに
+        学習データや API キーを含めない。API キーは端末の鍵で暗号化しているため、
+        別の端末に移しても読めず、かえって不具合のもとになる
+      - usesCleartextTraffic / networkSecurityConfig: 暗号化しない通信（http）を禁止する
+    -->
     <application
-        android:label="educards"
+        android:label="EduCards"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:usesCleartextTraffic="false"
+        android:networkSecurityConfig="@xml/network_security_config">
         <activity
             android:name=".MainActivity"
             android:exported="true"
