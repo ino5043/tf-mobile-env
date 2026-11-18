@@ -153,7 +153,7 @@ jobs:
           FINGERPRINT: ${{ steps.cert.outputs.fingerprint }}
         run: |
           cat > dist/notes.md <<EOF
-          EduCards（Android 版）です。入れ方は [Android に入れる方法](https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/android.html) を見てください。
+          EduCards（Android 版）です。入れ方は [Android に入れる方法](https://educards.techf.biz/android.html) を見てください。
 
           | ファイル | 向いている端末 |
           |---|---|

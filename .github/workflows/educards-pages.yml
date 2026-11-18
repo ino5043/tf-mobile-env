@@ -1,9 +1,9 @@
 name: EduCards Pages
 
 # 案内のページ（educards/site）を GitHub Pages に公開する。
-#   https://<owner>.github.io/tf-mobile-env/          はじめのページ
-#   https://<owner>.github.io/tf-mobile-env/android.html  Android に入れる方法
-#   https://<owner>.github.io/tf-mobile-env/app/      ブラウザで試せるデモ（Web 版のアプリ）
+#   https://educards.techf.biz/          はじめのページ
+#   https://educards.techf.biz/android.html  Android に入れる方法
+#   https://educards.techf.biz/app/      ブラウザで試せるデモ（Web 版のアプリ）
 # はじめのページに「デモを開く」のボタンがあるので、Web 版のアプリも既定で /app/ に置く。
 # 案内のページだけを置くときは、手動で起動して include_web_app を false にする（ボタンの先は無くなる）。
 # Pages を有効にするまでは手動で起動したときだけ動かす。有効にしたら push を足す。
@@ -45,7 +45,7 @@ jobs:
         working-directory: educards
         run: |
           flutter pub get
-          flutter build web --release --base-href "/tf-mobile-env/app/"
+          flutter build web --release --base-href "/app/"
           cp -r build/web ../_site/app
 
       - name: Setup Pages
